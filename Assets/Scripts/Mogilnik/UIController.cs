@@ -1,208 +1,354 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
 using TMPro;
+using System.Collections.Generic;
 
 public class UIController : MonoBehaviour
 {
     [Header("UI Элементы")]
-    public Transform collectedItemsContainer; // Контейнер для иконок в левом углу
-    public GameObject itemIconPrefab; // Префаб для иконки предмета
-    public TextMeshProUGUI scoreText; // Текст счета
-    public TextMeshProUGUI itemCountText; // Количество собранных предметов
-    public TextMeshProUGUI timerText; // Таймер
+    [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private TextMeshProUGUI currentLevelText;
+    [SerializeField] private TextMeshProUGUI inventoryCountText;
+    [SerializeField] private Transform inventoryGridParent; // Родитель с Grid Layout Group для предметов
     
-    [Header("Настройки игры")]
-    public float gameTime = 180f; // 3 минуты на уровень
-    public int maxItemsToShow = 10; // Максимум иконок для показа
+    [Header("Префаб для иконки предмета")]
+    [SerializeField] private GameObject inventoryItemPrefab; // Префаб UI элемента с Image компонентом
     
+    [Header("Настройки")]
+    [SerializeField] private string scorePrefix = "Очки: ";
+    [SerializeField] private string levelPrefix = "Уровень: ";
+    [SerializeField] private string inventoryPrefix = "Предметов: ";
+    
+    // Данные игрока
     private int currentScore = 0;
-    private int itemsCollected = 0;
-    private float timeRemaining;
-    private List<GameObject> itemIcons = new List<GameObject>();
-    private bool gameActive = true;
+    private int currentLevel = 1;
+    private List<InventoryItem> inventoryItems = new List<InventoryItem>();
     
+    // Singleton pattern для легкого доступа
+    public static UIController Instance { get; private set; }
+    
+    // Класс для хранения данных предмета в инвентаре
+    [System.Serializable]
+    public class InventoryItem
+    {
+        public string itemName;
+        public Sprite itemIcon;
+        public int itemValue;
+        public GameObject uiElement; // Ссылка на UI элемент в инвентаре
+        
+        public InventoryItem(string name, Sprite icon, int value)
+        {
+            itemName = name;
+            itemIcon = icon;
+            itemValue = value;
+        }
+    }
+    
+    void Awake()
+    {
+        // Реализация Singleton
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+    }
+
     void Start()
     {
-        timeRemaining = gameTime;
-        UpdateUI();
-        
-        // Создаем UI если он не существует
-        CreateUIIfNeeded();
+        InitializeUI();
+        UpdateAllUI();
     }
     
-    void Update()
+    /// <summary>
+    /// Инициализация UI элементов
+    /// </summary>
+    private void InitializeUI()
     {
-        if (gameActive)
-        {
-            // Обновляем таймер
-            timeRemaining -= Time.deltaTime;
+        Debug.Log("[UIController] Инициализация UI...");
+        
+        // Проверяем наличие необходимых UI элементов
+        if (scoreText == null)
+            Debug.LogWarning("[UIController] Score Text не назначен!");
+        
+        if (currentLevelText == null)
+            Debug.LogWarning("[UIController] Current Level Text не назначен!");
             
-            if (timeRemaining <= 0)
-            {
-                timeRemaining = 0;
-                EndGame();
-            }
+        if (inventoryCountText == null)
+            Debug.LogWarning("[UIController] Inventory Count Text не назначен!");
             
-            UpdateTimer();
-        }
-    }
-    
-    public void OnItemCollected(CollectableItem item)
-    {
-        if (!gameActive) return;
-        
-        // Увеличиваем счет
-        currentScore += item.itemValue;
-        itemsCollected++;
-        
-        // Добавляем иконку в интерфейс
-        AddItemIcon(item);
-        
-        // Обновляем UI
-        UpdateUI();
-        
-        Debug.Log($"Собран предмет: {item.itemName}, Очки: {item.itemValue}");
-    }
-    
-    private void AddItemIcon(CollectableItem item)
-    {
-        if (collectedItemsContainer == null || itemIconPrefab == null) return;
-        
-        // Создаем новую иконку (подложку)
-        GameObject newIcon = Instantiate(itemIconPrefab, collectedItemsContainer);
-        
-        // Находим или создаем Image компонент для иконки артефакта
-        Image itemIconImage = FindOrCreateItemIconImage(newIcon);
-        
-        // Настраиваем иконку артефакта
-        if (itemIconImage != null && item.itemIcon != null)
-        {
-            itemIconImage.sprite = item.itemIcon;
-            itemIconImage.color = Color.white; // Убеждаемся что иконка видна
-        }
-        
-        // Настраиваем компонент ItemIcon если есть
-        ItemIcon itemIconComponent = newIcon.GetComponent<ItemIcon>();
-        if (itemIconComponent != null)
-        {
-            itemIconComponent.SetIcon(item.itemIcon);
-        }
-        
-        // Добавляем в список
-        itemIcons.Add(newIcon);
-        
-        // Ограничиваем количество показываемых иконок
-        if (itemIcons.Count > maxItemsToShow)
-        {
-            Destroy(itemIcons[0]);
-            itemIcons.RemoveAt(0);
-        }
-    }
-    
-    private Image FindOrCreateItemIconImage(GameObject iconPrefabInstance)
-    {
-        // Сначала ищем дочерний объект с именем "ItemIcon" или "Icon"
-        Transform iconTransform = iconPrefabInstance.transform.Find("ItemIcon");
-        if (iconTransform == null)
-            iconTransform = iconPrefabInstance.transform.Find("Icon");
-        
-        if (iconTransform != null)
-        {
-            Image existingImage = iconTransform.GetComponent<Image>();
-            if (existingImage != null)
-                return existingImage;
-        }
-        
-        // Если не найден, создаем новый дочерний объект для иконки
-        GameObject iconChild = new GameObject("ItemIcon");
-        iconChild.transform.SetParent(iconPrefabInstance.transform, false);
-        
-        // Настраиваем RectTransform для полного покрытия родителя
-        RectTransform rectTransform = iconChild.AddComponent<RectTransform>();
-        rectTransform.anchorMin = Vector2.zero;
-        rectTransform.anchorMax = Vector2.one;
-        rectTransform.offsetMin = Vector2.zero;
-        rectTransform.offsetMax = Vector2.zero;
-        
-        // Добавляем Image компонент
-        Image iconImage = iconChild.AddComponent<Image>();
-        iconImage.preserveAspect = true; // Сохраняем пропорции иконки
-        
-        return iconImage;
-    }
-    
-    private void UpdateUI()
-    {
-        if (scoreText != null)
-            scoreText.text = $"Очки: {currentScore}";
+        if (inventoryGridParent == null)
+            Debug.LogWarning("[UIController] Inventory Grid Parent не назначен!");
             
-        if (itemCountText != null)
-            itemCountText.text = $"Предметов: {itemsCollected}";
+        if (inventoryItemPrefab == null)
+            Debug.LogWarning("[UIController] Inventory Item Prefab не назначен!");
     }
     
-    private void UpdateTimer()
+    /// <summary>
+    /// Обновляет все UI элементы
+    /// </summary>
+    private void UpdateAllUI()
     {
-        if (timerText != null)
+        UpdateScoreUI();
+        UpdateLevelUI();
+        UpdateInventoryCountUI();
+    }
+    
+    /// <summary>
+    /// Добавляет очки к текущему счету
+    /// </summary>
+    /// <param name="points">Количество добавляемых очков</param>
+    public void AddScore(int points)
+    {
+        currentScore += points;
+        UpdateScoreUI();
+        Debug.Log($"[UIController] Добавлено очков: {points}. Общий счет: {currentScore}");
+    }
+    
+    /// <summary>
+    /// Устанавливает текущий уровень
+    /// </summary>
+    /// <param name="level">Номер уровня</param>
+    public void SetCurrentLevel(int level)
+    {
+        currentLevel = level;
+        UpdateLevelUI();
+        Debug.Log($"[UIController] Установлен уровень: {level}");
+    }
+    
+    /// <summary>
+    /// Добавляет предмет в визуальный инвентарь
+    /// </summary>
+    /// <param name="itemName">Название предмета</param>
+    /// <param name="itemIcon">Спрайт предмета</param>
+    /// <param name="itemValue">Ценность предмета</param>
+    public void AddItemToInventory(string itemName, Sprite itemIcon, int itemValue)
+    {
+        if (string.IsNullOrEmpty(itemName))
         {
-            int minutes = Mathf.FloorToInt(timeRemaining / 60);
-            int seconds = Mathf.FloorToInt(timeRemaining % 60);
-            timerText.text = $"Время: {minutes:00}:{seconds:00}";
-        }
-    }
-    
-    private void EndGame()
-    {
-        gameActive = false;
-        Debug.Log($"Игра окончена! Финальный счет: {currentScore}, Собрано предметов: {itemsCollected}");
-        
-        // Здесь можно добавить экран результатов
-        ShowGameResults();
-    }
-    
-    private void ShowGameResults()
-    {
-        // Показываем результаты игры
-        Debug.Log("=== РЕЗУЛЬТАТЫ РАСКОПОК ===");
-        Debug.Log($"Собрано артефактов: {itemsCollected}");
-        Debug.Log($"Общий счет: {currentScore}");
-        Debug.Log($"Время: {Mathf.FloorToInt((gameTime - timeRemaining) / 60):00}:{Mathf.FloorToInt((gameTime - timeRemaining) % 60):00}");
-    }
-    
-    public void RestartGame()
-    {
-        // Сброс игры
-        currentScore = 0;
-        itemsCollected = 0;
-        timeRemaining = gameTime;
-        gameActive = true;
-        
-        // Очищаем иконки
-        foreach (GameObject icon in itemIcons)
-        {
-            if (icon != null) Destroy(icon);
-        }
-        itemIcons.Clear();
-        
-        UpdateUI();
-    }
-    
-    private void CreateUIIfNeeded()
-    {
-        // Автоматически создаем базовые UI элементы если их нет
-        Canvas canvas = FindObjectOfType<Canvas>();
-        if (canvas == null)
-        {
-            Debug.LogWarning("Canvas не найден! Создайте Canvas для отображения UI.");
+            Debug.LogWarning("[UIController] Пустое название предмета!");
             return;
         }
         
-        // Здесь можно добавить автоматическое создание UI элементов
+        // Создаем данные предмета
+        InventoryItem newItem = new InventoryItem(itemName, itemIcon, itemValue);
+        
+        // Проверяем и создаем префаб если нужно
+        EnsureInventoryItemPrefab();
+        
+        // Создаем UI элемент для предмета
+        if (inventoryGridParent != null && inventoryItemPrefab != null)
+        {
+            GameObject itemUI = Instantiate(inventoryItemPrefab, inventoryGridParent);
+            newItem.uiElement = itemUI;
+            
+            // Настраиваем через компонент InventoryItemUI (если есть)
+            InventoryItemUI itemUIComponent = itemUI.GetComponent<InventoryItemUI>();
+            if (itemUIComponent != null)
+            {
+                itemUIComponent.SetupItem(itemName, itemIcon, itemValue);
+            }
+            else
+            {
+                // Fallback: настраиваем напрямую через Image компонент
+                Image itemImage = itemUI.GetComponent<Image>();
+                if (itemImage != null)
+                {
+                    if (itemIcon != null)
+                    {
+                        itemImage.sprite = itemIcon;
+                        itemImage.preserveAspect = true;
+                        itemImage.color = Color.white;
+                    }
+                    else
+                    {
+                        // Если спрайт не задан, используем цветной квадрат
+                        itemImage.sprite = null;
+                        itemImage.color = GetRandomColor();
+                    }
+                }
+                
+                // Добавляем подсказку с названием предмета (опционально)
+                SetupItemTooltip(itemUI, itemName, itemValue);
+            }
+            
+            Debug.Log($"[UIController] ✓ Создан UI элемент для предмета '{itemName}'");
+        }
+        else
+        {
+            Debug.LogWarning("[UIController] ✗ Не удалось создать UI элемент - отсутствуют ссылки!");
+        }
+        
+        // Добавляем в список
+        inventoryItems.Add(newItem);
+        
+        // Добавляем очки
+        AddScore(itemValue);
+        
+        // Обновляем UI
+        UpdateInventoryCountUI();
+        
+        Debug.Log($"[UIController] Предмет '{itemName}' добавлен в инвентарь. Всего предметов: {inventoryItems.Count}");
     }
     
-    // Публичные методы для внешнего управления
-    public int GetCurrentScore() => currentScore;
-    public int GetItemsCollected() => itemsCollected;
-    public float GetTimeRemaining() => timeRemaining;
-    public bool IsGameActive() => gameActive;
+    /// <summary>
+    /// Настройка подсказки для предмета (опционально)
+    /// </summary>
+    private void SetupItemTooltip(GameObject itemUI, string itemName, int itemValue)
+    {
+        // Можно добавить компонент Tooltip или Button с обработчиком
+        Button itemButton = itemUI.GetComponent<Button>();
+        if (itemButton != null)
+        {
+            itemButton.onClick.AddListener(() => {
+                Debug.Log($"[UIController] Нажат предмет: {itemName} (ценность: {itemValue})");
+            });
+        }
+    }
+    
+    /// <summary>
+    /// Получает случайный цвет для предметов без спрайта
+    /// </summary>
+    private Color GetRandomColor()
+    {
+        Color[] colors = {
+            Color.red, Color.green, Color.blue, Color.yellow, 
+            Color.magenta, Color.cyan, new Color(1f, 0.5f, 0f), // оранжевый
+            new Color(0.5f, 0f, 1f) // фиолетовый
+        };
+        return colors[Random.Range(0, colors.Length)];
+    }
+    
+    /// <summary>
+    /// Очищает инвентарь
+    /// </summary>
+    public void ClearInventory()
+    {
+        // Удаляем все UI элементы
+        foreach (var item in inventoryItems)
+        {
+            if (item.uiElement != null)
+            {
+                Destroy(item.uiElement);
+            }
+        }
+        
+        inventoryItems.Clear();
+        UpdateInventoryCountUI();
+        Debug.Log("[UIController] Инвентарь очищен");
+    }
+    
+    /// <summary>
+    /// Обновляет отображение счета
+    /// </summary>
+    private void UpdateScoreUI()
+    {
+        if (scoreText != null)
+        {
+            scoreText.text = scorePrefix + currentScore.ToString();
+        }
+    }
+    
+    /// <summary>
+    /// Обновляет отображение текущего уровня
+    /// </summary>
+    private void UpdateLevelUI()
+    {
+        if (currentLevelText != null)
+        {
+            currentLevelText.text = levelPrefix + currentLevel.ToString();
+        }
+    }
+    
+    /// <summary>
+    /// Обновляет отображение количества предметов в инвентаре
+    /// </summary>
+    private void UpdateInventoryCountUI()
+    {
+        if (inventoryCountText != null)
+        {
+            inventoryCountText.text = inventoryPrefix + inventoryItems.Count.ToString();
+        }
+    }
+    
+    /// <summary>
+    /// Получает текущий счет
+    /// </summary>
+    public int GetCurrentScore()
+    {
+        return currentScore;
+    }
+    
+    /// <summary>
+    /// Получает текущий уровень
+    /// </summary>
+    public int GetCurrentLevel()
+    {
+        return currentLevel;
+    }
+    
+    /// <summary>
+    /// Получает количество предметов в инвентаре
+    /// </summary>
+    public int GetInventoryCount()
+    {
+        return inventoryItems.Count;
+    }
+    
+    /// <summary>
+    /// Получает копию списка предметов инвентаря
+    /// </summary>
+    public List<InventoryItem> GetInventoryItems()
+    {
+        return new List<InventoryItem>(inventoryItems);
+    }
+    
+    /// <summary>
+    /// Создает простой префаб для элемента инвентаря программно (если не задан в инспекторе)
+    /// </summary>
+    /// <returns>GameObject префаб для элемента инвентаря</returns>
+    public GameObject CreateSimpleInventoryItemPrefab()
+    {
+        // Создаем основной GameObject
+        GameObject prefab = new GameObject("InventoryItem");
+        
+        // Добавляем RectTransform
+        RectTransform rectTransform = prefab.AddComponent<RectTransform>();
+        rectTransform.sizeDelta = new Vector2(64, 64); // Размер 64x64 пикселя
+        
+        // Добавляем Image компонент
+        Image image = prefab.AddComponent<Image>();
+        image.color = Color.white;
+        image.preserveAspect = true;
+        
+        // Добавляем Button для интерактивности
+        Button button = prefab.AddComponent<Button>();
+        button.transition = Selectable.Transition.ColorTint;
+        
+        // Добавляем InventoryItemUI компонент
+        InventoryItemUI itemUI = prefab.AddComponent<InventoryItemUI>();
+        
+        Debug.Log("[UIController] Создан простой префаб элемента инвентаря программно");
+        return prefab;
+    }
+    /// Проверяет и создает префаб элемента инвентаря если он не задан
+    private void EnsureInventoryItemPrefab()
+    {
+        if (inventoryItemPrefab == null)
+        {
+            Debug.LogWarning("[UIController] Inventory Item Prefab не назначен! Создаем простой префаб программно...");
+            inventoryItemPrefab = CreateSimpleInventoryItemPrefab();
+        }
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
 }
