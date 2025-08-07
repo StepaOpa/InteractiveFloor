@@ -24,9 +24,7 @@ public class LevelPlane : MonoBehaviour
         // Она будет вызвана из LevelController после создания всех уровней
     }
 
-    /// <summary>
     /// Генерирует предметы на уровне. Вызывается из LevelController.
-    /// </summary>
     public void GenerateItems()
     {
 
@@ -34,12 +32,6 @@ public class LevelPlane : MonoBehaviour
         {
             return;
         }
-
-        MeshRenderer planeRenderer = GetComponent<MeshRenderer>();
-        if (planeRenderer == null)
-        {
-        }
-
         int generatedItemsCount = 0;
 
         for (int i = 0; i < itemsCount; i++)
@@ -74,9 +66,6 @@ public class LevelPlane : MonoBehaviour
                 
                 item.name = $"Item_{generatedItemsCount + 1}";
                 generatedItemsCount++;
-            }
-            else
-            {
             }
         }
 

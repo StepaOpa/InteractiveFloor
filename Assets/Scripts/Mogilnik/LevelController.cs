@@ -54,7 +54,6 @@ public class LevelController : MonoBehaviour
         
         if (createdLevelsCount == levelPlanePrefabs.Count - nullPrefabsCount)
         {
-            
             // Теперь запускаем генерацию предметов на всех уровнях
             StartItemGeneration();
         }
@@ -64,7 +63,6 @@ public class LevelController : MonoBehaviour
     /// Запускает генерацию предметов на всех созданных уровнях
     private void StartItemGeneration()
     {
-        int levelPlane.
         int levelPlanesFound = 0;
         int itemGenerationStarted = 0;
         
