@@ -14,6 +14,7 @@ public class IcebreakerController : MonoBehaviour
 
     private bool isMoving = false;
     private Quaternion originRotation;
+    private float uiInput = 0f;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -32,7 +33,10 @@ public class IcebreakerController : MonoBehaviour
 
     void Movement()
     {
-        float horizontalInput = Input.GetAxis("Horizontal");
+        // Объединяем ввод от клавиатуры и UI кнопок
+        float keyboardInput = Input.GetAxis("Horizontal");
+        float horizontalInput = Mathf.Clamp(keyboardInput + uiInput, -1f, 1f);
+
         transform.Translate(Vector3.right * horizontalInput * moveSpeed * Time.deltaTime, Space.World);
         Tilt(horizontalInput);
         // SmallRotation(horizontalInput);
@@ -52,6 +56,34 @@ public class IcebreakerController : MonoBehaviour
     {
         Vector3 currentRotation = transform.rotation.eulerAngles;
         return currentRotation.y != 0 || currentRotation.z != 0;
+    }
+
+    // ========== UI КНОПКИ ==========
+
+    public void StartMoveLeft()
+    {
+        uiInput = -1f;
+    }
+
+
+    public void StartMoveRight()
+    {
+        uiInput = 1f;
+    }
+
+
+    public void StopMovement()
+    {
+        uiInput = 0f;
+    }
+
+    /// <summary>
+    /// Установить конкретное значение движения (для слайдеров или джойстика)
+    /// </summary>
+    /// <param name="input">Значение от -1 до 1</param>
+    public void SetMovementInput(float input)
+    {
+        uiInput = Mathf.Clamp(input, -1f, 1f);
     }
 
 }
