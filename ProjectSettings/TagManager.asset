@@ -6,6 +6,8 @@ TagManager:
   tags:
   - IceShard
   - spawn
+  - Obstacle
+  - Iceberg
   layers:
   - Default
   - TransparentFX

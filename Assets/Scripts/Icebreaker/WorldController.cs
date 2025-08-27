@@ -9,6 +9,7 @@ public class WorldController : MonoBehaviour
 
     [SerializeField] private GameObject[] obstaclePrefabs;
 
+    [SerializeField] private int groundWidth = 2;
     [SerializeField] private Transform chunkSpawnPoint;
     [SerializeField] private float chunkSpeed = 10f;
     [SerializeField] private Transform replaceChunkPoint;
@@ -40,19 +41,16 @@ public class WorldController : MonoBehaviour
             }
         }
 
-        // Если нет ни одного чанка — создаём стартовый
         if (activeChunks.Count == 0)
         {
             SpawnChunk(chunkPrefab, chunkSpawnPoint.position.z);
             return;
         }
 
-        // Гарантируем ровную стыковку: новый чанк ставим ровно за последним по оси Z
         GameObject lastChunk = activeChunks[activeChunks.Count - 1];
         if (lastChunk != null && activeChunks.Count < 10)
         {
             float targetZ = lastChunk.transform.position.z + chunkLength;
-            // Спауним впереди, если запас закончился (за пределом spawnPoint)
             if (targetZ <= chunkSpawnPoint.position.z)
             {
                 SpawnChunk(chunkPrefab, targetZ);
@@ -63,12 +61,20 @@ public class WorldController : MonoBehaviour
 
     private void SpawnChunk(GameObject prefab, float z)
     {
-        GameObject newChunk = Instantiate(prefab, new Vector3(0, 0, z), Quaternion.identity, chunkSpawnPoint != null ? chunkSpawnPoint.parent : null);
-        activeChunks.Add(newChunk);
-        activeObjects.Add(newChunk);
+        for (int i = -40 * groundWidth; i <= 40 * groundWidth; i += 40)
+        {
+            GameObject newChunk = Instantiate(prefab, new Vector3(i, 0, z), Quaternion.identity, chunkSpawnPoint != null ? chunkSpawnPoint.parent : null);
+            if (newChunk.transform.position.x == 0)
+            {
+                activeChunks.Add(newChunk);
+                ChunkObstacleSpawner obstacleSpawner = newChunk.GetComponent<ChunkObstacleSpawner>();
+                activeObjects.AddRange(obstacleSpawner.SpawnObstacles(chunkSpawnPoint));
+            }
 
-        ChunkObstacleSpawner obstacleSpawner = newChunk.GetComponent<ChunkObstacleSpawner>();
-        activeObjects.AddRange(obstacleSpawner.SpawnObstacles(chunkSpawnPoint));
+            activeObjects.Add(newChunk);
+
+        }
+
     }
 
     private void MoveChunks()
@@ -97,24 +103,24 @@ public class WorldController : MonoBehaviour
         }
     }
 
-    private float GetClosestChunkZPosition()
+    private Vector3 GetClosestChunkPosition()
     {
         // Предполагается, что самый первый — ближайший к игроку
         for (int i = 0; i < activeChunks.Count; i++)
         {
             if (activeChunks[i] != null)
             {
-                return activeChunks[i].transform.position.z;
+                return activeChunks[i].transform.position;
             }
         }
         // Если нет валидных чанков — возвращаем большое значение вперёд
-        return float.MaxValue;
+        return new Vector3(0, 0, float.MaxValue);
     }
 
     private void ReplaceChunk()
     {
-        float closestZ = GetClosestChunkZPosition();
-        if (closestZ < replaceChunkPoint.position.z)
+        Vector3 closestPosition = GetClosestChunkPosition();
+        if (closestPosition.z < replaceChunkPoint.position.z && closestPosition.x == 0 && closestPosition.y == 0)
         {
             // Находим первый валидный чанк (который собираемся заменить)
             int firstValidIndex = -1;

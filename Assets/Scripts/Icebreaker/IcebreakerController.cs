@@ -3,6 +3,7 @@ using UnityEngine;
 public class IcebreakerController : MonoBehaviour
 {
 
+    [Header("Movement")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float maxTiltAngle = 15f;
     [SerializeField] private float tiltSpeed = 3f;
@@ -12,6 +13,7 @@ public class IcebreakerController : MonoBehaviour
     [SerializeField] private float minX = -8f;
     [SerializeField] private float maxX = 8f;
 
+    [SerializeField] private int health = 3;
     private bool isMoving = false;
     private Quaternion originRotation;
     private float uiInput = 0f;
@@ -84,6 +86,21 @@ public class IcebreakerController : MonoBehaviour
     public void SetMovementInput(float input)
     {
         uiInput = Mathf.Clamp(input, -1f, 1f);
+    }
+
+    public void TakeDamage(int damage)
+    {
+        health -= damage;
+        Debug.Log("Icebreaker health: " + health);
+        if (health <= 0)
+        {
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        Debug.Log("Icebreaker is dead");
     }
 
 }
