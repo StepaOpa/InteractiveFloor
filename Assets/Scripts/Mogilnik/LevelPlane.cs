@@ -1,80 +1,76 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class LevelPlane : MonoBehaviour
 {
+    [Header("Шаблон для создания")]
+    [SerializeField] private GameObject digSpotPrefab; 
 
-    [SerializeField] private System.Collections.Generic.List<GameObject> itemPrefabs;
-    [SerializeField] private float minScale = 0.5f;
-    [SerializeField] private float maxScale = 2f;
-    [SerializeField] private float minX = -5f;
-    [SerializeField] private float maxX = 5f;
-    [SerializeField] private float minZ = -5f; 
-    [SerializeField] private float maxZ = 5f;
-    [SerializeField] private int itemsCount = 10;
-    [SerializeField] private float minRotationY = 0f;
-    [SerializeField] private float maxRotationY = 360f;
-    [SerializeField] private float minRotationX = 0f;
-    [SerializeField] private float maxRotationX = 360f;
-    [SerializeField] private float absoluteScale = 1000f;
-    [SerializeField] private float heightOffset = 0.1f;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        // Генерация предметов теперь не запускается автоматически
-        // Она будет вызвана из LevelController после создания всех уровней
-    }
+    [Header("Список возможных находок")]
+    [SerializeField] private List<GameObject> possibleItemPrefabs = new List<GameObject>();
 
-    /// Генерирует предметы на уровне. Вызывается из LevelController.
+    [Header("Настройки генерации")]
+    [SerializeField] private int digSpotsCount = 4;
+    [SerializeField] private float minDistanceBetweenSpots = 1.0f; 
+    [SerializeField] private float heightOffset = 0.1f; 
+
+    [Header("Границы для размещения")]
+    [SerializeField] private float minX = -1.8f;
+    [SerializeField] private float maxX = 1.8f;
+    [SerializeField] private float minZ = -1.8f;
+    [SerializeField] private float maxZ = 1.8f;
+
+    private List<Vector3> spawnedPositions = new List<Vector3>();
+    
     public void GenerateItems()
     {
-
-        if (itemPrefabs == null || itemPrefabs.Count == 0)
+        if (digSpotPrefab == null || possibleItemPrefabs.Count == 0) 
         {
-            return;
-        }
-        int generatedItemsCount = 0;
-
-        for (int i = 0; i < itemsCount; i++)
-        {
-            // Выбираем случайный предмет из списка
-            GameObject prefab = itemPrefabs[Random.Range(0, itemPrefabs.Count)];
-            
-            if (prefab == null)
-            {
-                continue;
-            }
-            
-            // Генерируем случайную позицию в пределах плоскости
-            float randomX = Random.Range(minX, maxX);
-            float randomZ = Random.Range(minZ, maxZ);
-            // Используем высоту текущего уровня + небольшое смещение вверх
-            Vector3 randomPosition = new Vector3(randomX, transform.position.y + heightOffset, randomZ);
-            
-            // Создаем объект на сцене
-            GameObject item = Instantiate(prefab, randomPosition, Quaternion.identity, transform);
-            
-            if (item != null)
-            {
-                // Правильное случайное вращение по обеим осям одновременно
-                float randomRotY = Random.Range(minRotationY, maxRotationY);
-                float randomRotX = Random.Range(minRotationX, maxRotationX);
-                item.transform.rotation = Quaternion.Euler(randomRotX, randomRotY, 0);
-                
-                // Случайный размер
-                float randomScale = Random.Range(minScale, maxScale) * absoluteScale;
-                item.transform.localScale = new Vector3(randomScale, randomScale, randomScale);
-                
-                item.name = $"Item_{generatedItemsCount + 1}";
-                generatedItemsCount++;
-            }
+            Debug.LogError("[LevelPlane] Префабы в инспекторе не назначены!");
+            return; 
         }
 
+        spawnedPositions.Clear();
 
+        for (int i = 0; i < digSpotsCount; i++)
+        {
+            Vector3 spawnPosition;
+            int attempts = 0; 
+            do
+            {
+                float randomX = Random.Range(minX, maxX);
+                float randomZ = Random.Range(minZ, maxZ);
+                spawnPosition = new Vector3(randomX, transform.position.y + heightOffset, randomZ);
+                
+                attempts++;
+                if (attempts > 100) { return; }
+
+            } while (!IsPositionValid(spawnPosition));
+
+            spawnedPositions.Add(spawnPosition);
+            
+            int randomItemIndex = Random.Range(0, possibleItemPrefabs.Count);
+            GameObject itemToHide = possibleItemPrefabs[randomItemIndex];
+
+            GameObject newDigSpotObject = Instantiate(digSpotPrefab, spawnPosition, Quaternion.identity, transform);
+
+            DigSpot digSpotScript = newDigSpotObject.GetComponent<DigSpot>();
+            if (digSpotScript != null)
+            {
+                digSpotScript.hiddenItemPrefab = itemToHide;
+            }
+        }
     }
-
-    // Update is called once per frame
-    void Update()
+    
+    private bool IsPositionValid(Vector3 position)
     {
-        // Логика удаления уровня теперь находится в LevelController
+        foreach (Vector3 spawnedPos in spawnedPositions)
+        {
+            if (Vector3.Distance(position, spawnedPos) < minDistanceBetweenSpots)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
