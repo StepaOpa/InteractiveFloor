@@ -1,0 +1,99 @@
+using UnityEngine;
+
+// Требуем, чтобы на этом объекте всегда был компонент AudioSource
+[RequireComponent(typeof(AudioSource))]
+public class SoundManager : MonoBehaviour
+{
+    // Singleton для легкого доступа из любого другого скрипта
+    public static SoundManager Instance { get; private set; }
+
+    // Ссылки на все ваши аудиофайлы. Вы перетащите их в инспекторе.
+    [Header("Звуки событий")]
+    [SerializeField] private AudioClip newLevelSound;
+    [SerializeField] private AudioClip winSound;
+    [SerializeField] private AudioClip loseSound;
+
+    [Header("Звуки предметов")]
+    [SerializeField] private AudioClip pickupItemSound;      // Поднятие для осмотра
+    [SerializeField] private AudioClip inventoryAddSound;    // Успешно добавлен в инвентарь
+    [SerializeField] private AudioClip itemDropSound;        // Выбросить/вернуть на место
+    [SerializeField] private AudioClip errorSound;           // Попытка взять мусор
+
+    private AudioSource audioSource;
+
+    void Awake()
+    {
+        // Настройка Singleton
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // Делаем менеджер постоянным между сценами
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        // Получаем доступ к компоненту AudioSource
+        audioSource = GetComponent<AudioSource>();
+    }
+
+    // Далее идут публичные методы, которые будут вызывать другие скрипты
+
+    public void PlayNewLevelSound()
+    {
+        if (newLevelSound != null)
+        {
+            audioSource.PlayOneShot(newLevelSound);
+        }
+    }
+
+    public void PlayWinSound()
+    {
+        if (winSound != null)
+        {
+            audioSource.PlayOneShot(winSound);
+        }
+    }
+
+    public void PlayLoseSound()
+    {
+        if (loseSound != null)
+        {
+            audioSource.PlayOneShot(loseSound);
+        }
+    }
+
+    public void PlayPickupItemSound()
+    {
+        if (pickupItemSound != null)
+        {
+            audioSource.PlayOneShot(pickupItemSound);
+        }
+    }
+
+    public void PlayInventoryAddSound()
+    {
+        if (inventoryAddSound != null)
+        {
+            audioSource.PlayOneShot(inventoryAddSound);
+        }
+    }
+
+    public void PlayItemDropSound()
+    {
+        if (itemDropSound != null)
+        {
+            audioSource.PlayOneShot(itemDropSound);
+        }
+    }
+
+    public void PlayErrorSound()
+    {
+        if (errorSound != null)
+        {
+            audioSource.PlayOneShot(errorSound);
+        }
+    }
+}
