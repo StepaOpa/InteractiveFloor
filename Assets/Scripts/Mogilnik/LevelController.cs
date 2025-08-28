@@ -10,6 +10,7 @@ public class LevelController : MonoBehaviour
     
     [Header("Компоненты игры")]
     [SerializeField] private LevelTimer levelTimer;
+    [SerializeField] private GameObject newLevelEffectPrefab; // <-- ВОТ НОВОЕ ПОЛЕ ДЛЯ ЭФФЕКТА
 
     private List<GameObject> activeLevels = new List<GameObject>();
     private int currentLevelIndex = 0;
@@ -38,6 +39,15 @@ public class LevelController : MonoBehaviour
             GameObject level = Instantiate(levelPlanePrefabs[currentLevelIndex], spawnPosition, Quaternion.identity, transform);
             level.name = $"Level_{currentLevelIndex + 1}";
             activeLevels.Add(level);
+
+            // --- ИЗМЕНЕНИЕ: ЗАПУСКАЕМ ЭФФЕКТ ПЕРЕХОДА ---
+            // Проверяем, что префаб назначен и что это не самый первый уровень
+            if (newLevelEffectPrefab != null && currentLevelIndex > 0) 
+            {
+                // Создаем эффект в центре нового уровня
+                Instantiate(newLevelEffectPrefab, spawnPosition, Quaternion.identity);
+            }
+            // ---------------------------------------------
 
             // Генерируем DigSpot'ы для нового уровня
             LevelPlane levelPlane = level.GetComponent<LevelPlane>();

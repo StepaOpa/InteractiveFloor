@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &656613501641563271
+--- !u!1 &2604857946296473606
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,48 +8,47 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 5806365660000526685}
-  - component: {fileID: 557450285109388352}
-  - component: {fileID: 6760678488047796973}
-  - component: {fileID: 891155521693048918}
-  - component: {fileID: 2189223059845514772}
+  - component: {fileID: 5732567792636256538}
+  - component: {fileID: 7266854419987592162}
+  - component: {fileID: 5694502370973459063}
+  - component: {fileID: 9108292866675580247}
   m_Layer: 0
-  m_Name: LevelPlane
+  m_Name: DirtParticle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &5806365660000526685
+--- !u!4 &5732567792636256538
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 656613501641563271}
+  m_GameObject: {fileID: 2604857946296473606}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
-  m_ConstrainProportionsScale: 1
+  m_LocalRotation: {x: 0.6427876, y: -0, z: -0, w: 0.7660445}
+  m_LocalPosition: {x: 0, y: 4.16, z: -0.893}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &557450285109388352
+--- !u!33 &7266854419987592162
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 656613501641563271}
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &6760678488047796973
+  m_GameObject: {fileID: 2604857946296473606}
+  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &5694502370973459063
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 656613501641563271}
+  m_GameObject: {fileID: 2604857946296473606}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -66,7 +65,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: f154a0b6a4020d343b27a69f565f31e2, type: 2}
+  - {fileID: 2100000, guid: f8085634e51d748d7a5a9bbded51a9fb, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -88,13 +87,13 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &891155521693048918
-MeshCollider:
+--- !u!135 &9108292866675580247
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 656613501641563271}
+  m_GameObject: {fileID: 2604857946296473606}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -106,34 +105,6 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &2189223059845514772
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 656613501641563271}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e2450db9f16ed54eaaaa7b1770f3019, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  digSpotPrefab: {fileID: 1394666016831433859, guid: 3b4edc9f51bb707f39f6d112657d6331, type: 3}
-  possibleItemPrefabs:
-  - {fileID: 6265487342830748791, guid: 809231116eb8bc740b7f7146995ab481, type: 3}
-  - {fileID: 8582826690379079093, guid: f6a1a62a0e236b24bbeb8eb694a827e7, type: 3}
-  - {fileID: 2085497318346961155, guid: e9cc9cba87bc8cd4fae42b054b7a3a7d, type: 3}
-  - {fileID: 5107546137790270368, guid: b286f375081d4234483c14eced1066b7, type: 3}
-  - {fileID: 585340726003276542, guid: 22048e31393221b418e3fb0900c8327b, type: 3}
-  - {fileID: 2379802138214940463, guid: 6871a875e8efcd043b3fe2eb8f96db77, type: 3}
-  digSpotsCount: 1
-  minDistanceBetweenSpots: 1
-  heightOffset: 0.2
-  minX: -1.8
-  maxX: 1.8
-  minZ: -1.8
-  maxZ: 1.8
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
