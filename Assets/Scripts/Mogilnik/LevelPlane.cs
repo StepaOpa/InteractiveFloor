@@ -21,6 +21,13 @@ public class LevelPlane : MonoBehaviour
     [SerializeField] private float maxZ = 1.8f;
 
     private List<Vector3> spawnedPositions = new List<Vector3>();
+
+    // <-- ИЗМЕНЕНИЕ: Новый публичный метод -->
+    // Он просто возвращает количество предметов, которое будет сгенерировано.
+    public int GetTotalItemsCount()
+    {
+        return digSpotsCount;
+    }
     
     public void GenerateItems()
     {

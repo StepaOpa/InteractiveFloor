@@ -126,6 +126,10 @@ MonoBehaviour:
   possibleItemPrefabs:
   - {fileID: 6265487342830748791, guid: 809231116eb8bc740b7f7146995ab481, type: 3}
   - {fileID: 8582826690379079093, guid: f6a1a62a0e236b24bbeb8eb694a827e7, type: 3}
+  - {fileID: 2085497318346961155, guid: e9cc9cba87bc8cd4fae42b054b7a3a7d, type: 3}
+  - {fileID: 5107546137790270368, guid: b286f375081d4234483c14eced1066b7, type: 3}
+  - {fileID: 585340726003276542, guid: 22048e31393221b418e3fb0900c8327b, type: 3}
+  - {fileID: 2379802138214940463, guid: 6871a875e8efcd043b3fe2eb8f96db77, type: 3}
   digSpotsCount: 6
   minDistanceBetweenSpots: 1
   heightOffset: 0.2

@@ -35,7 +35,7 @@ public class GameManager : MonoBehaviour
         // Сбрасываем время
         Time.timeScale = 1f;
 
-        // <-- ИЗМЕНЕНИЕ 3: Вызываем сброс флага при каждой загрузке сцены
+        // Сбрасываем флаг осмотра предмета
         CollectableItem.ResetInspectionFlag();
     }
 

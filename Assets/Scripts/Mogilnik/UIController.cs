@@ -24,6 +24,9 @@ public class UIController : MonoBehaviour
     private int currentScore = 0;
     private int currentLevel = 1;
     private List<InventoryItem> inventoryItems = new List<InventoryItem>();
+    
+    // ИЗМЕНЕНИЕ: Переменная для хранения общего количества предметов
+    private int totalCollectableItems = 0;
 
     public static UIController Instance { get; private set; }
 
@@ -69,24 +72,12 @@ public class UIController : MonoBehaviour
     {
         Debug.Log("[UIController] Инициализация UI...");
 
-        // Проверяем наличие необходимых UI элементов
-        if (scoreText == null)
-            Debug.LogWarning("[UIController] Score Text не назначен!");
-
-        if (currentLevelText == null)
-            Debug.LogWarning("[UIController] Current Level Text не назначен!");
-
-        if (inventoryCountText == null)
-            Debug.LogWarning("[UIController] Inventory Count Text не назначен!");
-
-        if (inventoryGridParent == null)
-            Debug.LogWarning("[UIController] Inventory Grid Parent не назначен!");
-
-        if (inventoryItemPrefab == null)
-            Debug.LogWarning("[UIController] Inventory Item Prefab не назначен!");
-
-        if (itemBackgroundPrefab == null)
-            Debug.LogWarning("[UIController] Item Background Prefab не назначен!");
+        if (scoreText == null) Debug.LogWarning("[UIController] Score Text не назначен!");
+        if (currentLevelText == null) Debug.LogWarning("[UIController] Current Level Text не назначен!");
+        if (inventoryCountText == null) Debug.LogWarning("[UIController] Inventory Count Text не назначен!");
+        if (inventoryGridParent == null) Debug.LogWarning("[UIController] Inventory Grid Parent не назначен!");
+        if (inventoryItemPrefab == null) Debug.LogWarning("[UIController] Inventory Item Prefab не назначен!");
+        if (itemBackgroundPrefab == null) Debug.LogWarning("[UIController] Item Background Prefab не назначен!");
     }
 
     private void UpdateAllUI()
@@ -94,6 +85,14 @@ public class UIController : MonoBehaviour
         UpdateScoreUI();
         UpdateLevelUI();
         UpdateInventoryCountUI();
+    }
+    
+    // ИЗМЕНЕНИЕ: Новый публичный метод для установки общего числа предметов
+    public void SetTotalItemsCount(int totalCount)
+    {
+        totalCollectableItems = totalCount;
+        UpdateInventoryCountUI(); 
+        Debug.Log($"[UIController] Установлено общее количество предметов: {totalCount}");
     }
 
     public void AddScore(int points)
@@ -124,11 +123,13 @@ public class UIController : MonoBehaviour
             currentLevelText.text = levelPrefix + currentLevel.ToString();
         }
     }
+
+    // ИЗМЕНЕНИЕ: Логика отображения счетчика
     private void UpdateInventoryCountUI()
     {
         if (inventoryCountText != null)
         {
-            inventoryCountText.text = inventoryPrefix + inventoryItems.Count.ToString();
+            inventoryCountText.text = inventoryPrefix + inventoryItems.Count.ToString() + " / " + totalCollectableItems.ToString();
         }
     }
 

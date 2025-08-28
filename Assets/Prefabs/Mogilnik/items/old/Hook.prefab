@@ -104,7 +104,7 @@ MonoBehaviour:
   buttonRotationSpeed: 180
   buttonRotationStep: 45
   inspectionDistance: 1
-  inspectionScaleModifier: 5
+  inspectionScaleModifier: 2
   inspectionOffset: {x: 0, y: 0, z: 0}
   flightCurve:
     serializedVersion: 2

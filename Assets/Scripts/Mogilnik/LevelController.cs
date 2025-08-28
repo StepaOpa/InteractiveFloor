@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections.Generic; // Добавлено для List
+using System.Collections.Generic;
 
 public class LevelController : MonoBehaviour
 {
@@ -43,6 +43,17 @@ public class LevelController : MonoBehaviour
             LevelPlane levelPlane = level.GetComponent<LevelPlane>();
             if (levelPlane != null)
             {
+                // -- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ --
+                // 1. Получаем общее количество предметов с уровня
+                int totalItems = levelPlane.GetTotalItemsCount();
+                
+                // 2. Сразу же отправляем это число в UI
+                if (UIController.Instance != null)
+                {
+                    UIController.Instance.SetTotalItemsCount(totalItems);
+                }
+
+                // 3. Запускаем генерацию, как и раньше
                 levelPlane.GenerateItems();
             }
         }

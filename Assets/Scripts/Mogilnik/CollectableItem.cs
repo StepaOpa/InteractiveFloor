@@ -49,6 +49,7 @@ public class CollectableItem : MonoBehaviour
     void Start()
     {
         InitializeItem();
+
     }
 
     void Update()
