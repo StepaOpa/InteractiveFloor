@@ -67,4 +67,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hiddenItemPrefab: {fileID: 0}
+  itemRevealEffectPrefab: {fileID: 199421224910880781, guid: d85f7cc89d505396c9003829ef221cb6, type: 3}
   tapsToReveal: 3
