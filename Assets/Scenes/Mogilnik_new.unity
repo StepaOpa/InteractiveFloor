@@ -973,6 +973,7 @@ MonoBehaviour:
   collectButton: {fileID: 1948306310}
   cancelButton: {fileID: 239094604}
   inspectionPanel: {fileID: 258559720}
+  dustCloudEffectPrefab: {fileID: 2243461430069334295, guid: 0ad52581f8dfbbbc8bc1d91ccf563417, type: 3}
 --- !u!1 &273056490
 GameObject:
   m_ObjectHideFlags: 0
@@ -2452,7 +2453,7 @@ MonoBehaviour:
   inventoryGridParent: {fileID: 1709016778}
   inventoryItemPrefab: {fileID: 8436769290059939328, guid: 853dbe866aaa5634ba48ec8ee1e1885f, type: 3}
   itemBackgroundPrefab: {fileID: 8436769290059939328, guid: 94f96c78910fbd248808a2f1559f99d5, type: 3}
-  scorePrefix: "\u041E\u0447\u043A\u0438: "
+  scorePrefix: "\u041C\u043E\u043D\u0435\u0442\u044B: "
   levelPrefix: "\u0423\u0440\u043E\u0432\u0435\u043D\u044C: "
   inventoryPrefix: "\u041F\u0440\u0435\u0434\u043C\u0435\u0442\u043E\u0432: "
 --- !u!1 &961739749

@@ -98,7 +98,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: "\u0420\u044B\u0431\u043E\u043B\u043E\u0432\u043D\u044B\u0439 \u043A\u0440\u044E\u0447\u043E\u043A"
   itemIcon: {fileID: 21300000, guid: 50c8e0feb38bf9747bbc6bd23f9bfadd, type: 3}
-  itemValue: -10
+  itemValue: -1
   flyToPlayerSpeed: 5
   rotationSpeed: 100
   inspectionDistance: 1

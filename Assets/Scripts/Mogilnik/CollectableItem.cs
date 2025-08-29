@@ -29,7 +29,6 @@ public class CollectableItem : MonoBehaviour
     [SerializeField] private float brushVerticalPadding = 0.1f;
     [SerializeField] private Vector3 brushAnimationRotation = new Vector3(60f, 70f, 0f);
 
-    // --- Приватные переменные ---
     private Camera playerCamera;
     private Vector3 originalPosition;
     private Quaternion originalRotation;
@@ -51,7 +50,7 @@ public class CollectableItem : MonoBehaviour
 
     void Update()
     {
-
+        // Вращение мышкой отключено для режима осмотра
     }
 
     private void InitializeItem()
@@ -64,7 +63,7 @@ public class CollectableItem : MonoBehaviour
         meshRenderer = GetComponent<MeshRenderer>();
         if (meshRenderer == null)
         {
-            Debug.LogError($"На предмете '{itemName}' отсутствует MeshRenderer! Автоматический расчет высоты кисти невозможен.");
+            Debug.LogError($"На предмете '{itemName}' отсутствует MeshRenderer!");
         }
     }
 
@@ -82,31 +81,9 @@ public class CollectableItem : MonoBehaviour
         }
     }
 
-    private void HandleMouseRotation()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            isRotating = true;
-            lastMousePosition = Input.mousePosition;
-        }
-        if (Input.GetMouseButtonUp(0))
-        {
-            isRotating = false;
-        }
-        if (isRotating)
-        {
-            Vector2 mouseDelta = (Vector2)Input.mousePosition - lastMousePosition;
-            float rotationX = -mouseDelta.y * rotationSpeed * Time.deltaTime;
-            float rotationY = mouseDelta.x * rotationSpeed * Time.deltaTime;
-            transform.Rotate(rotationX, rotationY, 0, Space.World);
-            lastMousePosition = Input.mousePosition;
-        }
-    }
-
     public void RotateByButton(string direction)
     {
         if (isCleaning || isRotatingByButton) return;
-
         Vector3 targetRotation;
         switch (direction.ToLower())
         {
@@ -147,6 +124,12 @@ public class CollectableItem : MonoBehaviour
     private IEnumerator CleanItemAnimationCoroutine()
     {
         isCleaning = true;
+
+        if (InspectionUI.Instance != null)
+        {
+            InspectionUI.Instance.CreateDustEffect(this.transform, meshRenderer.bounds.center);
+        }
+
         if (brushPrefab == null)
         {
             Debug.LogError("Префаб кисточки (Brush Prefab) не назначен в инспекторе!");
@@ -155,20 +138,15 @@ public class CollectableItem : MonoBehaviour
         }
 
         GameObject brushInstance = Instantiate(brushPrefab);
-
-        // Автоматический расчет позиции
         float brushX = transform.position.x;
         float brushZ = transform.position.z;
         float brushY = meshRenderer.bounds.max.y + brushVerticalPadding;
         Vector3 brushStartPosition = new Vector3(brushX, brushY, brushZ);
         brushInstance.transform.position = brushStartPosition;
-
-        // Расчет поворота
         Quaternion cameraFacingRotation = Quaternion.LookRotation(playerCamera.transform.forward);
         Quaternion desiredTilt = Quaternion.Euler(brushAnimationRotation);
         brushInstance.transform.rotation = cameraFacingRotation * desiredTilt;
 
-        // Анимация движения
         Vector3 swipeDirection = playerCamera.transform.right;
         Vector3 centerPos = brushInstance.transform.position;
         Vector3 leftPos = centerPos - swipeDirection * brushSwipeDistance;
@@ -176,10 +154,22 @@ public class CollectableItem : MonoBehaviour
 
         for (int i = 0; i < brushSwipeCount; i++)
         {
+            if (InspectionUI.Instance != null) InspectionUI.Instance.PlayDustEffect();
             yield return StartCoroutine(MoveBrush(brushInstance.transform, leftPos, rightPos, brushSwipeSpeed));
+            if (InspectionUI.Instance != null) InspectionUI.Instance.StopDustEffect();
+
+            if (InspectionUI.Instance != null) InspectionUI.Instance.PlayDustEffect();
             yield return StartCoroutine(MoveBrush(brushInstance.transform, rightPos, leftPos, brushSwipeSpeed));
+            if (InspectionUI.Instance != null) InspectionUI.Instance.StopDustEffect();
         }
+
         Destroy(brushInstance);
+
+        if (InspectionUI.Instance != null)
+        {
+            InspectionUI.Instance.DestroyDustEffect();
+        }
+
         isCleaning = false;
     }
 
