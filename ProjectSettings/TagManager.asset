@@ -8,6 +8,7 @@ TagManager:
   - spawn
   - Obstacle
   - Iceberg
+  - Diggable
   layers:
   - Default
   - TransparentFX

@@ -1687,7 +1687,7 @@ Transform:
   m_GameObject: {fileID: 442335280}
   serializedVersion: 2
   m_LocalRotation: {x: 0.66311187, y: 0.1476936, z: 0.15952985, w: 0.7162539}
-  m_LocalPosition: {x: 0, y: 2.599, z: -0.753}
+  m_LocalPosition: {x: -0.094, y: 2.608, z: -0.129}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3025,7 +3025,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3185b2b779a16f9b8ee4af8c645fe89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelTime: 500
+  levelTime: 60
   radialProgressImage: {fileID: 504053449}
   timerText: {fileID: 437673536}
 --- !u!1 &1134582347
@@ -3101,7 +3101,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1244863714}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.29}
+  m_LocalPosition: {x: 0, y: 0, z: 0.3}
   m_LocalScale: {x: 0.5520833, y: 0.55208325, z: 0.55208325}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3109,7 +3109,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -2.93}
+  m_AnchoredPosition: {x: -0, y: 0.58}
   m_SizeDelta: {x: 10.4868, y: 1.5225}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1331970199
@@ -3828,6 +3828,9 @@ MonoBehaviour:
   newLevelSound: {fileID: 8300000, guid: 16914112454f0bec6bec34cb8f2efc59, type: 3}
   winSound: {fileID: 8300000, guid: 94c05988a90648685bd6a18a51312ebf, type: 3}
   loseSound: {fileID: 8300000, guid: 75c373b25ba0e1f1692111af8de5353b, type: 3}
+  digTapSound: {fileID: 8300000, guid: d5bb456f8e3c3a10e97df10612093ce0, type: 3}
+  itemRevealSound: {fileID: 8300000, guid: 7fc4e1d5f387db24194f08cd8f530dec, type: 3}
+  timerTickSound: {fileID: 8300000, guid: a49cebd820fb16101b2a3ff093cbb0ad, type: 3}
   pickupItemSound: {fileID: 8300000, guid: 13e319413aa7acd529d3a5ff368d8651, type: 3}
   inventoryAddSound: {fileID: 8300000, guid: 30d9efdf6f06bf3c9872a587920c3166, type: 3}
   itemDropSound: {fileID: 8300000, guid: d6f5c0f6aae78e771b9772ed4d8fdc62, type: 3}
@@ -4346,6 +4349,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60097b56a813d927ea6fef36ec5a5de6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  winScreenDelay: 0.5
 --- !u!4 &1943019119
 Transform:
   m_ObjectHideFlags: 0
@@ -4766,7 +4770,7 @@ GameObject:
   - component: {fileID: 2025605278}
   m_Layer: 0
   m_Name: LevelController
-  m_TagString: Untagged
+  m_TagString: Diggable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
