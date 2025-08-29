@@ -124,9 +124,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dropDuration: 0.5
-  spinDuration: 0.7
+  spinDuration: 0.5
   bounceHeight: 0.2
-  pauseBetweenSpins: 3
+  pauseBetweenSpins: 3.5
+  rotationAxis: {x: 0, y: 0, z: 1}
   dropCurve:
     serializedVersion: 2
     m_Curve:
