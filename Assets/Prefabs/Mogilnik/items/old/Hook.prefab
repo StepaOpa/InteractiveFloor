@@ -111,7 +111,7 @@ MonoBehaviour:
   brushSwipeSpeed: 2
   brushSwipeCount: 2
   brushVerticalPadding: 0.1
-  brushAnimationRotation: {x: 25, y: 0, z: 0}
+  brushAnimationRotation: {x: 25, y: 25, z: 25}
 --- !u!65 &2589323215749407930
 BoxCollider:
   m_ObjectHideFlags: 0

@@ -102,7 +102,7 @@ MonoBehaviour:
   flyToPlayerSpeed: 5
   rotationSpeed: 100
   inspectionDistance: 1
-  inspectionScaleModifier: 1.4
+  inspectionScaleModifier: 1.1
   inspectionOffset: {x: 0, y: 0, z: 0}
   buttonRotationSpeed: 180
   buttonRotationStep: 45
@@ -111,7 +111,7 @@ MonoBehaviour:
   brushSwipeSpeed: 2
   brushSwipeCount: 2
   brushVerticalPadding: 0.1
-  brushAnimationRotation: {x: 25, y: 25, z: 10}
+  brushAnimationRotation: {x: 25, y: 25, z: 25}
 --- !u!65 &6330252678977195998
 BoxCollider:
   m_ObjectHideFlags: 0

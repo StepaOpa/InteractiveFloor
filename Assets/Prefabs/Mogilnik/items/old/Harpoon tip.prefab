@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 70847b97e809a2b47aa35962242f753c, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1000
+      value: 900
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 70847b97e809a2b47aa35962242f753c, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1000
+      value: 900
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 70847b97e809a2b47aa35962242f753c, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1000
+      value: 900
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 70847b97e809a2b47aa35962242f753c, type: 3}
       propertyPath: m_LocalPosition.x
@@ -101,8 +101,8 @@ MonoBehaviour:
   itemValue: 10
   flyToPlayerSpeed: 5
   rotationSpeed: 100
-  inspectionDistance: 3
-  inspectionScaleModifier: 3
+  inspectionDistance: 1
+  inspectionScaleModifier: 1
   inspectionOffset: {x: 0, y: 0, z: 0}
   buttonRotationSpeed: 180
   buttonRotationStep: 45
@@ -111,7 +111,7 @@ MonoBehaviour:
   brushSwipeSpeed: 2
   brushSwipeCount: 2
   brushVerticalPadding: 0.1
-  brushAnimationRotation: {x: 25, y: 25, z: 10}
+  brushAnimationRotation: {x: 25, y: 25, z: 25}
 --- !u!65 &7453968070767032684
 BoxCollider:
   m_ObjectHideFlags: 0
