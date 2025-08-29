@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections;
-using UnityEngine.SceneManagement; // Добавлено для отслеживания загрузки сцен
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(AudioSource))]
 public class SoundManager : MonoBehaviour
@@ -16,6 +16,7 @@ public class SoundManager : MonoBehaviour
     [SerializeField] private AudioClip digTapSound;
     [SerializeField] private AudioClip itemRevealSound;
     [SerializeField] private AudioClip timerTickSound;
+    [SerializeField] private AudioClip brushSwipeSound; // <-- НОВОЕ ПОЛЕ ДЛЯ ЗВУКА КИСТИ
 
     [Header("Звуки предметов")]
     [SerializeField] private AudioClip pickupItemSound;
@@ -28,83 +29,36 @@ public class SoundManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
-
+        if (Instance == null) { Instance = this; DontDestroyOnLoad(gameObject); }
+        else { Destroy(gameObject); return; }
         audioSource = GetComponent<AudioSource>();
-        
-        // Эта строка КРИТИЧЕСКИ ВАЖНА. Она позволяет звукам работать, когда игра на паузе (Time.timeScale = 0).
         audioSource.ignoreListenerPause = true;
     }
 
-    void OnEnable()
-    {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
+    void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
+    void OnDisable() { SceneManager.sceneLoaded -= OnSceneLoaded; }
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode) { StopAllSounds(); }
 
-    void OnDisable()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-    // Этот метод вызывается при каждой загрузке сцены (включая рестарт)
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        // Гарантированно глушим все звуки из прошлой игровой сессии.
-        StopAllSounds();
-    }
-
-    // --- ГЛАВНЫЙ НОВЫЙ МЕТОД ---
     public void StopAllSounds()
     {
-        // 1. Останавливаем корутину таймера, если она была запущена.
-        if (tickingCoroutine != null)
-        {
-            StopCoroutine(tickingCoroutine);
-            tickingCoroutine = null;
-        }
-        
-        // 2. Глушим любые другие звуки, которые могли играть.
+        if (tickingCoroutine != null) { StopCoroutine(tickingCoroutine); tickingCoroutine = null; }
         audioSource.Stop();
     }
 
-    // --- Логика таймера ---
-    public void StartTickingSound()
-    {
-        if (tickingCoroutine == null && timerTickSound != null)
-        {
-            tickingCoroutine = StartCoroutine(TickingCoroutine());
-        }
-    }
+    public void StartTickingSound() { if (tickingCoroutine == null && timerTickSound != null) { tickingCoroutine = StartCoroutine(TickingCoroutine()); } }
+    public void StopTickingSound() { if (tickingCoroutine != null) { StopCoroutine(tickingCoroutine); tickingCoroutine = null; } }
+    private IEnumerator TickingCoroutine() { while (true) { audioSource.PlayOneShot(timerTickSound); yield return new WaitForSecondsRealtime(1f); } }
     
-    // Этот метод теперь является частью StopAllSounds, но пусть останется для явного вызова из LevelTimer
-    public void StopTickingSound()
+    // --- НОВЫЙ МЕТОД ---
+    public void PlayBrushSwipeSound()
     {
-        if (tickingCoroutine != null)
+        if (brushSwipeSound != null)
         {
-            StopCoroutine(tickingCoroutine);
-            tickingCoroutine = null;
+            audioSource.PlayOneShot(brushSwipeSound);
         }
     }
-    
-    private IEnumerator TickingCoroutine()
-    {
-        while (true)
-        {
-            audioSource.PlayOneShot(timerTickSound);
-            yield return new WaitForSecondsRealtime(1f);
-        }
-    }
+    // -------------------
 
-    // Все методы Play... остаются без изменений
     public void PlayNewLevelSound() { if (newLevelSound != null) audioSource.PlayOneShot(newLevelSound); }
     public void PlayWinSound() { if (winSound != null) audioSource.PlayOneShot(winSound); }
     public void PlayLoseSound() { if (loseSound != null) audioSource.PlayOneShot(loseSound); }

@@ -3832,6 +3832,7 @@ MonoBehaviour:
   digTapSound: {fileID: 8300000, guid: d5bb456f8e3c3a10e97df10612093ce0, type: 3}
   itemRevealSound: {fileID: 8300000, guid: 7fc4e1d5f387db24194f08cd8f530dec, type: 3}
   timerTickSound: {fileID: 8300000, guid: a49cebd820fb16101b2a3ff093cbb0ad, type: 3}
+  brushSwipeSound: {fileID: 8300000, guid: 45e2bf1b8b73175ccabc4a363d2e2b35, type: 3}
   pickupItemSound: {fileID: 8300000, guid: 13e319413aa7acd529d3a5ff368d8651, type: 3}
   inventoryAddSound: {fileID: 8300000, guid: 30d9efdf6f06bf3c9872a587920c3166, type: 3}
   itemDropSound: {fileID: 8300000, guid: d6f5c0f6aae78e771b9772ed4d8fdc62, type: 3}
