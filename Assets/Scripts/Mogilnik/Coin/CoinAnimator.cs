@@ -1,55 +1,51 @@
 using UnityEngine;
-using UnityEngine.UI; // <-- ВАЖНО: Добавили для работы с Image
 using System.Collections;
 
 public class CoinAnimator : MonoBehaviour
 {
     [Header("Настройки анимации")]
     [SerializeField] private float dropDuration = 0.5f;
-    [SerializeField] private float spinDuration = 0.5f; // Сделаем вращение чуть быстрее
-    [SerializeField] private float bounceHeight = 30f; // <-- ВНИМАНИЕ: Значение стало больше (это пиксели)
+    [SerializeField] private float spinDuration = 0.4f;
+    [SerializeField] private float bounceHeight = 0.5f; // ВНИМАНИЕ: Теперь это мировые единицы, а не пиксели. Значение должно быть маленьким.
+    [SerializeField] private float pauseBetweenSpins = 3f; // Пауза между вращениями
     [SerializeField] private AnimationCurve dropCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
-    private Image coinImage;
-    private RectTransform rectTransform; // <-- Работаем с RectTransform
-
-    void Awake()
-    {
-        // Находим наши UI-компоненты
-        coinImage = GetComponent<Image>();
-        rectTransform = GetComponent<RectTransform>();
-    }
+    // Убрали Image и RectTransform, так как работаем с 3D-объектом
 
     public void AnimateCoin(Vector3 startPos, Vector3 endPos, float dropDelay, float spinDelay)
     {
         StartCoroutine(AnimationSequence(startPos, endPos, dropDelay, spinDelay));
     }
 
-    private IEnumerator AnimationSequence(Vector3 startPos, Vector3 endPos, float dropDelay, float spinDelay)
-    {
-        // Используем transform.position, так как Instantiate работает с мировыми координатами
-        transform.position = startPos;
-        
-        // Прячем монетку, выключая компонент Image
-        if (coinImage != null) coinImage.enabled = false;
+// В файле CoinAnimator.cs
 
-        yield return new WaitForSeconds(dropDelay);
-        
-        // Показываем монетку
-        if (coinImage != null) coinImage.enabled = true;
+private IEnumerator AnimationSequence(Vector3 startPos, Vector3 endPos, float dropDelay, float spinDelay)
+{
+    // Прячем монетку, чтобы она не мелькнула в начале <-- УДАЛЯЕМ ЭТУ ЛОГИКУ
+    // gameObject.SetActive(false); // <--- УДАЛИТЬ
+    transform.position = startPos;
+    // Сбрасываем вращение
+    transform.rotation = Quaternion.identity;
 
-        yield return StartCoroutine(DropCoroutine(endPos)); // Передаем только конечную точку
-        
-        yield return new WaitForSeconds(spinDelay);
-        
-        StartCoroutine(SpinCoroutine());
-    }
+    // Просто ждем задержку, пока монетка висит в воздухе
+    yield return new WaitForSeconds(dropDelay);
+    
+    // Показываем монетку <-- ЭТО ТОЖЕ БОЛЬШЕ НЕ НУЖНО
+    // gameObject.SetActive(true); // <--- УДАЛИТЬ
 
-    // Корутина падения теперь работает с transform.position, как и раньше
-    private IEnumerator DropCoroutine(Vector3 endPos)
+    // Запускаем падение
+    yield return StartCoroutine(DropCoroutine(startPos, endPos));
+    
+    // Ждем своей очереди, прежде чем начать вращаться
+    yield return new WaitForSeconds(spinDelay);
+    
+    // Запускаем бесконечный цикл вращений
+    StartCoroutine(SpinLoopCoroutine());
+}
+
+    private IEnumerator DropCoroutine(Vector3 startPos, Vector3 endPos)
     {
         float elapsedTime = 0f;
-        Vector3 startPos = transform.position;
 
         while (elapsedTime < dropDuration)
         {
@@ -60,43 +56,54 @@ public class CoinAnimator : MonoBehaviour
         }
         transform.position = endPos;
 
-        // Отскок
+        // Отскок в 3D
         Vector3 bounceStartPos = endPos;
-        Vector3 bouncePeakPos = endPos + Vector3.up * bounceHeight; // Отскок вверх в мировых координатах
-        elapsedTime = 0f;
+        Vector3 bouncePeakPos = endPos + Vector3.up * bounceHeight;
         float bounceDuration = dropDuration / 2.5f;
 
-        while (elapsedTime < bounceDuration)
-        {
-            elapsedTime += Time.deltaTime;
-            transform.position = Vector3.Lerp(bounceStartPos, bouncePeakPos, elapsedTime / bounceDuration);
-            yield return null;
-        }
+        // Вверх
         elapsedTime = 0f;
         while (elapsedTime < bounceDuration)
         {
+            transform.position = Vector3.Lerp(bounceStartPos, bouncePeakPos, elapsedTime / bounceDuration);
             elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // Вниз
+        elapsedTime = 0f;
+        while (elapsedTime < bounceDuration)
+        {
             transform.position = Vector3.Lerp(bouncePeakPos, bounceStartPos, elapsedTime / bounceDuration);
+            elapsedTime += Time.deltaTime;
             yield return null;
         }
         transform.position = endPos;
     }
 
-    // --- ГЛАВНОЕ ИЗМЕНЕНИЕ: Вращение для 2D UI ---
-    private IEnumerator SpinCoroutine()
+    // Вращение для 3D-объекта
+    private IEnumerator SpinLoopCoroutine()
     {
-        float elapsedTime = 0f;
-        Vector3 startAngles = rectTransform.localEulerAngles;
-        // Вращаем на 360 градусов вокруг оси Z (ось, которая "смотрит" на нас)
-        Vector3 endAngles = startAngles + new Vector3(0, 0, 360); 
-
-        while (elapsedTime < spinDuration)
+        // Бесконечный цикл
+        while (true)
         {
-            elapsedTime += Time.deltaTime;
-            Vector3 newAngles = Vector3.Lerp(startAngles, endAngles, elapsedTime / spinDuration);
-            rectTransform.localEulerAngles = newAngles;
-            yield return null;
+            float elapsedTime = 0f;
+            Quaternion startRotation = transform.rotation;
+            // Вращаем на 360 градусов вокруг своей оси Y (вертикальная ось)
+            Quaternion endRotation = startRotation * Quaternion.Euler(0, 360, 0); 
+
+            while (elapsedTime < spinDuration)
+            {
+                // Плавное вращение через Slerp
+                transform.rotation = Quaternion.Slerp(startRotation, endRotation, elapsedTime / spinDuration);
+                elapsedTime += Time.deltaTime;
+                yield return null;
+            }
+            // Гарантируем точное конечное положение
+            transform.rotation = startRotation;
+
+            // Ждем 3 секунды перед следующим вращением
+            yield return new WaitForSeconds(pauseBetweenSpins);
         }
-        rectTransform.localEulerAngles = startAngles; // Возвращаем в исходное положение
     }
 }
