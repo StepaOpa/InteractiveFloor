@@ -51,10 +51,7 @@ public class CollectableItem : MonoBehaviour
 
     void Update()
     {
-        if (isBeingInspected && !isCleaning && !isRotatingByButton)
-        {
-            HandleMouseRotation();
-        }
+
     }
 
     private void InitializeItem()

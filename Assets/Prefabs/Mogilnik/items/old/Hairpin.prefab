@@ -106,12 +106,12 @@ MonoBehaviour:
   inspectionOffset: {x: 0, y: 0, z: 0}
   buttonRotationSpeed: 180
   buttonRotationStep: 45
-  brushPrefab: {fileID: 3251472299608458949, guid: 9f45a08805e8f8eac9b7bd501e96359f, type: 3}
+  brushPrefab: {fileID: 919132149155446097, guid: e141332acdc9e136e85ab02862ca7044, type: 3}
   brushSwipeDistance: 0.2
   brushSwipeSpeed: 2
   brushSwipeCount: 2
-  brushOffset: {x: 0, y: 0, z: 0}
-  brushAnimationRotation: {x: 60, y: 70, z: 0}
+  brushVerticalPadding: 0.1
+  brushAnimationRotation: {x: 25, y: 25, z: 10}
 --- !u!65 &2261931107048581262
 BoxCollider:
   m_ObjectHideFlags: 0
