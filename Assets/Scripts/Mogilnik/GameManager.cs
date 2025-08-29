@@ -1,11 +1,13 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections; // Добавляем для использования корутин
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
     private EndGamePanelUI endGamePanelUI;
+    [SerializeField] private float winScreenDelay = 0.5f; // Задержка перед показом экрана победы
 
     void Awake()
     {
@@ -60,25 +62,35 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // --- ИЗМЕНЕНИЕ 1: Публичный метод теперь запускает корутину ---
     public void ShowWinScreen(int finalScore, int totalLevels)
+    {
+        // Мы не показываем экран сразу, а запускаем процесс с задержкой
+        StartCoroutine(ShowWinScreenCoroutine(finalScore, totalLevels));
+    }
+
+    // --- ИЗМЕНЕНИЕ 2: Сама логика теперь находится в корутине ---
+    private IEnumerator ShowWinScreenCoroutine(int finalScore, int totalLevels)
     {
         if (endGamePanelUI != null)
         {
-            // --- НОВАЯ НАДЕЖНАЯ ЛОГИКА ---
-            // 1. СНАЧАЛА: Принудительно останавливаем ВСЕ звуки.
+            // 1. ЖДЕМ: Даем время UI-анимации последнего предмета завершиться.
+            yield return new WaitForSeconds(winScreenDelay);
+
+            // 2. СНАЧАЛА: Принудительно останавливаем ВСЕ звуки.
             if (SoundManager.Instance != null)
             {
                 SoundManager.Instance.StopAllSounds();
             }
 
-            // 2. ПОТОМ: Ставим игру на паузу.
+            // 3. ПОТОМ: Ставим игру на паузу.
             Time.timeScale = 0f;
             
-            // 3. Показываем панель.
+            // 4. Показываем панель.
             endGamePanelUI.gameObject.SetActive(true); 
             endGamePanelUI.ShowWin(finalScore);
 
-            // 4. В САМОМ КОНЦЕ: Проигрываем звук победы.
+            // 5. В САМОМ КОНЦЕ: Проигрываем звук победы.
             if (SoundManager.Instance != null)
             {
                 SoundManager.Instance.PlayWinSound();
@@ -90,25 +102,23 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
+    // Экран поражения не требует задержки, так как он срабатывает по таймеру, а не от сбора предмета.
+    // Оставляем его без изменений.
     public void ShowLoseScreen(int finalScore, int levelsCompleted)
     {
         if (endGamePanelUI != null)
         {
-            // --- НОВАЯ НАДЕЖНАЯ ЛОГИКА ---
-            // 1. СНАЧАЛА: Принудительно останавливаем ВСЕ звуки.
             if (SoundManager.Instance != null)
             {
                 SoundManager.Instance.StopAllSounds();
             }
 
-            // 2. ПОТОМ: Ставим игру на паузу.
             Time.timeScale = 0f;
 
-            // 3. Показываем панель.
             endGamePanelUI.gameObject.SetActive(true);
             endGamePanelUI.ShowLose(finalScore, levelsCompleted);
 
-            // 4. В САМОМ КОНЦЕ: Проигрываем звук поражения.
             if (SoundManager.Instance != null)
             {
                 SoundManager.Instance.PlayLoseSound();
