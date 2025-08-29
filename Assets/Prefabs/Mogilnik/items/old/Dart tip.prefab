@@ -101,37 +101,17 @@ MonoBehaviour:
   itemValue: 10
   flyToPlayerSpeed: 5
   rotationSpeed: 100
-  buttonRotationSpeed: 180
-  buttonRotationStep: 45
   inspectionDistance: 1
   inspectionScaleModifier: 1.4
   inspectionOffset: {x: 0, y: 0, z: 0}
-  flightCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  arrivalPause: 0.1
-  pickupEffect: {fileID: 0}
+  buttonRotationSpeed: 180
+  buttonRotationStep: 45
+  brushPrefab: {fileID: 3251472299608458949, guid: 9f45a08805e8f8eac9b7bd501e96359f, type: 3}
+  brushSwipeDistance: 0.2
+  brushSwipeSpeed: 2
+  brushSwipeCount: 2
+  brushOffset: {x: 0, y: 0, z: 0}
+  brushAnimationRotation: {x: 0, y: 0, z: 0}
 --- !u!65 &6330252678977195998
 BoxCollider:
   m_ObjectHideFlags: 0

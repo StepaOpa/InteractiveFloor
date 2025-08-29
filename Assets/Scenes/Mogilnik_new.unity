@@ -3025,7 +3025,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3185b2b779a16f9b8ee4af8c645fe89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  levelTime: 60
+  levelTime: 300
   radialProgressImage: {fileID: 504053449}
   timerText: {fileID: 437673536}
 --- !u!1 &1134582347

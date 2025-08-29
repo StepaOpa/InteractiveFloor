@@ -4,247 +4,250 @@ using UnityEngine.EventSystems;
 
 public class CollectableItem : MonoBehaviour
 {
-    // ... (весь код до ExitInspectionMode без изменений) ...
-
     [Header("Настройки предмета")]
     public string itemName = "Артефакт";
     public Sprite itemIcon;
     public int itemValue = 10;
 
-    [Header("Настройки анимации")]
+    [Header("Настройки осмотра")]
     [SerializeField] private float flyToPlayerSpeed = 5f;
     [SerializeField] private float rotationSpeed = 100f;
-    [SerializeField] private float buttonRotationSpeed = 180f;
-    [SerializeField] private float buttonRotationStep = 45f;
     [SerializeField] private float inspectionDistance = 1f;
     [SerializeField] private float inspectionScaleModifier = 0.5f;
     [SerializeField] private Vector3 inspectionOffset = new Vector3(0, 0, 0);
 
-    [Header("Настройки полёта")]
-    [SerializeField] private AnimationCurve flightCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-    [SerializeField] private float arrivalPause = 0.1f;
+    [Header("Вращение кнопками")]
+    [SerializeField] private float buttonRotationSpeed = 180f;
+    [SerializeField] private float buttonRotationStep = 45f;
 
-    [Header("Звуки и эффекты")]
-    [SerializeField] private GameObject pickupEffect;
+    [Header("Настройки очистки")]
+    [SerializeField] private GameObject brushPrefab;
+    [SerializeField] private float brushSwipeDistance = 0.2f;
+    [SerializeField] private float brushSwipeSpeed = 2f;
+    [SerializeField] private int brushSwipeCount = 2;
+    [Tooltip("Насколько выше самой высокой точки предмета появится кисть")]
+    [SerializeField] private float brushVerticalPadding = 0.1f;
+    [SerializeField] private Vector3 brushAnimationRotation = new Vector3(60f, 70f, 0f);
 
+    // --- Приватные переменные ---
     private Camera playerCamera;
     private Vector3 originalPosition;
     private Quaternion originalRotation;
     private Vector3 originalScale;
     private Collider itemCollider;
-    private Rigidbody itemRigidbody;
-
+    private MeshRenderer meshRenderer;
     private bool isBeingInspected = false;
-    private bool isMovingToPlayer = false;
-    private bool canBePickedUp = true;
-
     private static bool isAnyItemBeingInspected = false;
-
+    private bool isCleaning = false;
     private Vector2 lastMousePosition;
     private bool isRotating = false;
-
     private bool isRotatingByButton = false;
     private Coroutine currentRotationCoroutine = null;
 
     void Start()
     {
         InitializeItem();
-
     }
 
     void Update()
     {
-        if (isBeingInspected)
+        if (isBeingInspected && !isCleaning && !isRotatingByButton)
         {
-            HandleInspectionInput();
+            HandleMouseRotation();
         }
     }
 
     private void InitializeItem()
     {
         playerCamera = Camera.main;
-        if (playerCamera == null)
-        {
-            playerCamera = FindObjectOfType<Camera>();
-        }
-        
         originalPosition = transform.position;
         originalRotation = transform.rotation;
         originalScale = transform.localScale;
-        
         itemCollider = GetComponent<Collider>();
-        itemRigidbody = GetComponent<Rigidbody>();
-
-        if (itemCollider == null)
+        meshRenderer = GetComponent<MeshRenderer>();
+        if (meshRenderer == null)
         {
-            itemCollider = gameObject.AddComponent<BoxCollider>();
+            Debug.LogError($"На предмете '{itemName}' отсутствует MeshRenderer! Автоматический расчет высоты кисти невозможен.");
         }
-
-        if (flightCurve == null || flightCurve.length == 0)
-        {
-            flightCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-        }
-
-        Debug.Log($"[CollectableItem] Предмет '{itemName}' инициализирован");
     }
 
     void OnMouseDown()
     {
-        if (canBePickedUp && !isMovingToPlayer && !isBeingInspected && !isAnyItemBeingInspected)
+        if (EventSystem.current.IsPointerOverGameObject()) return;
+
+        if (!isBeingInspected && !isAnyItemBeingInspected && !isCleaning)
         {
-            PickUpItem();
+            StartCoroutine(FlyToPlayerCoroutine());
         }
-        else if (isBeingInspected)
+        else if (isBeingInspected && !isCleaning && !isRotatingByButton)
         {
-            StartMouseRotation();
+            StartCoroutine(CleanItemAnimationCoroutine());
         }
     }
 
-    private void StartMouseRotation()
+    private void HandleMouseRotation()
     {
-        if (!isRotatingByButton)
+        if (Input.GetMouseButtonDown(0))
         {
             isRotating = true;
             lastMousePosition = Input.mousePosition;
         }
-    }
-
-    private void HandleInspectionInput()
-    {
-        if (Input.GetMouseButton(0) && isRotating && !isRotatingByButton)
-        {
-            Vector2 currentMousePosition = Input.mousePosition;
-            Vector2 mouseDelta = currentMousePosition - lastMousePosition;
-            float rotationX = -mouseDelta.y * rotationSpeed * Time.deltaTime;
-            float rotationY = mouseDelta.x * rotationSpeed * Time.deltaTime;
-            transform.Rotate(rotationX, rotationY, 0, Space.World);
-            lastMousePosition = currentMousePosition;
-        }
-
         if (Input.GetMouseButtonUp(0))
         {
             isRotating = false;
         }
-
-        if (Input.GetKeyDown(KeyCode.Escape) || Input.GetMouseButtonDown(1))
+        if (isRotating)
         {
-            ExitInspectionMode();
+            Vector2 mouseDelta = (Vector2)Input.mousePosition - lastMousePosition;
+            float rotationX = -mouseDelta.y * rotationSpeed * Time.deltaTime;
+            float rotationY = mouseDelta.x * rotationSpeed * Time.deltaTime;
+            transform.Rotate(rotationX, rotationY, 0, Space.World);
+            lastMousePosition = Input.mousePosition;
         }
-
-        if (Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.Return))
-        {
-            CollectItem();
-        }
-        
-        HandleKeyboardRotation();
     }
 
-    private void HandleKeyboardRotation()
+    public void RotateByButton(string direction)
     {
-        if (Input.GetKeyDown(KeyCode.UpArrow)) RotateUp();
-        if (Input.GetKeyDown(KeyCode.DownArrow)) RotateDown();
-        if (Input.GetKeyDown(KeyCode.LeftArrow)) RotateLeft();
-        if (Input.GetKeyDown(KeyCode.RightArrow)) RotateRight();
+        if (isCleaning || isRotatingByButton) return;
+
+        Vector3 targetRotation;
+        switch (direction.ToLower())
+        {
+            case "up": targetRotation = new Vector3(-buttonRotationStep, 0, 0); break;
+            case "down": targetRotation = new Vector3(buttonRotationStep, 0, 0); break;
+            case "left": targetRotation = new Vector3(0, -buttonRotationStep, 0); break;
+            case "right": targetRotation = new Vector3(0, buttonRotationStep, 0); break;
+            default: return;
+        }
+        StartSmoothRotation(targetRotation);
     }
 
-    public void PickUpItem()
+    private void StartSmoothRotation(Vector3 deltaRotation)
     {
-        if (!canBePickedUp) return;
+        if (currentRotationCoroutine != null) StopCoroutine(currentRotationCoroutine);
+        currentRotationCoroutine = StartCoroutine(SmoothRotationCoroutine(deltaRotation));
+    }
 
-        StartCoroutine(FlyToPlayerCoroutine());
+    private IEnumerator SmoothRotationCoroutine(Vector3 deltaRotation)
+    {
+        isRotatingByButton = true;
+        Quaternion startRotation = transform.rotation;
+        Quaternion targetRotation = startRotation * Quaternion.Euler(deltaRotation);
+        float elapsedTime = 0f;
+        float rotationDuration = buttonRotationStep / buttonRotationSpeed;
+        while (elapsedTime < rotationDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = Mathf.SmoothStep(0f, 1f, elapsedTime / rotationDuration);
+            transform.rotation = Quaternion.Slerp(startRotation, targetRotation, t);
+            yield return null;
+        }
+        transform.rotation = targetRotation;
+        isRotatingByButton = false;
+        currentRotationCoroutine = null;
+    }
 
-        if (SoundManager.Instance != null) SoundManager.Instance.PlayPickupItemSound();
-        if (pickupEffect != null) Instantiate(pickupEffect, transform.position, Quaternion.identity);
+    private IEnumerator CleanItemAnimationCoroutine()
+    {
+        isCleaning = true;
+        if (brushPrefab == null)
+        {
+            Debug.LogError("Префаб кисточки (Brush Prefab) не назначен в инспекторе!");
+            isCleaning = false;
+            yield break;
+        }
 
-        canBePickedUp = false;
-        isMovingToPlayer = true;
+        GameObject brushInstance = Instantiate(brushPrefab);
+
+        // Автоматический расчет позиции
+        float brushX = transform.position.x;
+        float brushZ = transform.position.z;
+        float brushY = meshRenderer.bounds.max.y + brushVerticalPadding;
+        Vector3 brushStartPosition = new Vector3(brushX, brushY, brushZ);
+        brushInstance.transform.position = brushStartPosition;
+
+        // Расчет поворота
+        Quaternion cameraFacingRotation = Quaternion.LookRotation(playerCamera.transform.forward);
+        Quaternion desiredTilt = Quaternion.Euler(brushAnimationRotation);
+        brushInstance.transform.rotation = cameraFacingRotation * desiredTilt;
+
+        // Анимация движения
+        Vector3 swipeDirection = playerCamera.transform.right;
+        Vector3 centerPos = brushInstance.transform.position;
+        Vector3 leftPos = centerPos - swipeDirection * brushSwipeDistance;
+        Vector3 rightPos = centerPos + swipeDirection * brushSwipeDistance;
+
+        for (int i = 0; i < brushSwipeCount; i++)
+        {
+            yield return StartCoroutine(MoveBrush(brushInstance.transform, leftPos, rightPos, brushSwipeSpeed));
+            yield return StartCoroutine(MoveBrush(brushInstance.transform, rightPos, leftPos, brushSwipeSpeed));
+        }
+        Destroy(brushInstance);
+        isCleaning = false;
+    }
+
+    private IEnumerator MoveBrush(Transform brushTransform, Vector3 from, Vector3 to, float speed)
+    {
+        float progress = 0f;
+        while (progress < 1f)
+        {
+            if (brushTransform == null) yield break;
+            progress += Time.deltaTime * speed;
+            brushTransform.position = Vector3.Lerp(from, to, progress);
+            yield return null;
+        }
+        if (brushTransform != null) brushTransform.position = to;
     }
 
     private IEnumerator FlyToPlayerCoroutine()
     {
         Vector3 startPosition = transform.position;
-        Vector3 targetPosition = GetInspectionPosition();
+        Vector3 targetPosition = playerCamera.transform.position + playerCamera.transform.forward * inspectionDistance + inspectionOffset;
         Vector3 startScale = transform.localScale;
         Vector3 targetScale = originalScale * inspectionScaleModifier;
-
         float elapsedTime = 0f;
         float flightDuration = Vector3.Distance(startPosition, targetPosition) / flyToPlayerSpeed;
-
         while (elapsedTime < flightDuration)
         {
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / flightDuration;
-            float smoothT = flightCurve.Evaluate(t);
-
-            transform.position = Vector3.Lerp(startPosition, targetPosition, smoothT);
-            transform.localScale = Vector3.Lerp(startScale, targetScale, smoothT);
-
-            float currentRotationSpeed = 50f * (1f - t * 0.5f);
-            transform.Rotate(0, currentRotationSpeed * Time.deltaTime, 0);
-
+            transform.position = Vector3.Lerp(startPosition, targetPosition, t);
+            transform.localScale = Vector3.Lerp(startScale, targetScale, t);
             yield return null;
         }
-
         transform.position = targetPosition;
         transform.localScale = targetScale;
-
-        if (arrivalPause > 0f) yield return new WaitForSeconds(arrivalPause);
-
-        isMovingToPlayer = false;
         EnterInspectionMode();
-    }
-
-    private Vector3 GetInspectionPosition()
-    {
-        if (playerCamera != null)
-        {
-            return playerCamera.transform.position + playerCamera.transform.forward * inspectionDistance + inspectionOffset;
-        }
-        return transform.position + Vector3.up * 2f;
     }
 
     private void EnterInspectionMode()
     {
         isBeingInspected = true;
         isAnyItemBeingInspected = true;
-
-        if (itemRigidbody != null)
-        {
-            itemRigidbody.linearVelocity = Vector3.zero;
-            itemRigidbody.angularVelocity = Vector3.zero;
-        }
-
         if (InspectionUI.Instance != null)
         {
             InspectionUI.Instance.ShowInspectionUI(this);
         }
     }
 
+    public void ExitInspectionPublic()
+    {
+        if (isBeingInspected && !isCleaning && !isRotatingByButton)
+        {
+            ExitInspectionMode();
+        }
+    }
+
     private void ExitInspectionMode()
     {
-        Debug.Log($"[CollectableItem] Выход из режима осмотра: {itemName}");
-
         isBeingInspected = false;
         isAnyItemBeingInspected = false;
-        isRotating = false;
-
-        if (currentRotationCoroutine != null)
-        {
-            StopCoroutine(currentRotationCoroutine);
-            currentRotationCoroutine = null;
-            isRotatingByButton = false;
-        }
-
         if (InspectionUI.Instance != null)
         {
             InspectionUI.Instance.HideInspectionUI();
         }
-
-        // <-- ИЗМЕНЕНИЕ 1: Добавляем звук выброса мусора
         if (itemValue < 0)
         {
-            Debug.Log($"[CollectableItem] Мусор '{itemName}' был выброшен и уничтожен.");
-            // Проигрываем звук и здесь
             if (SoundManager.Instance != null) SoundManager.Instance.PlayItemDropSound();
             Destroy(gameObject);
         }
@@ -262,7 +265,6 @@ public class CollectableItem : MonoBehaviour
         Vector3 startScale = transform.localScale;
         float elapsedTime = 0f;
         float returnDuration = 1f;
-
         while (elapsedTime < returnDuration)
         {
             elapsedTime += Time.deltaTime;
@@ -272,79 +274,47 @@ public class CollectableItem : MonoBehaviour
             transform.localScale = Vector3.Lerp(startScale, originalScale, t);
             yield return null;
         }
-
         transform.position = originalPosition;
         transform.rotation = originalRotation;
         transform.localScale = originalScale;
+    }
 
-        if (itemRigidbody != null)
+    public void CollectItemPublic()
+    {
+        if (isBeingInspected && !isCleaning && !isRotatingByButton)
         {
-            itemRigidbody.isKinematic = false;
+            CollectItem();
         }
-        canBePickedUp = true;
     }
 
     private void CollectItem()
     {
-        // <-- ВАЖНО: Мы сбрасываем флаг здесь, чтобы избежать его "залипания", если игра закончится
         isAnyItemBeingInspected = false;
-
-        if (currentRotationCoroutine != null)
-        {
-            StopCoroutine(currentRotationCoroutine);
-            currentRotationCoroutine = null;
-            isRotatingByButton = false;
-        }
-
         if (InspectionUI.Instance != null)
         {
             InspectionUI.Instance.HideInspectionUI();
         }
-
         if (SoundManager.Instance != null)
         {
             if (itemValue > 0)
-            {
                 SoundManager.Instance.PlayInventoryAddSound();
-            }
             else
-            {
                 SoundManager.Instance.PlayErrorSound();
-            }
         }
-
         if (UIController.Instance != null)
         {
             UIController.Instance.AddItemToInventory(itemName, itemIcon, itemValue);
         }
-        else
-        {
-            Debug.LogWarning($"[CollectableItem] UIController.Instance не найден! Предмет '{itemName}' собран, но не добавлен в UI");
-        }
-
         Destroy(gameObject);
     }
-    
-    // <-- ИЗМЕНЕНИЕ 3: Новый метод для сброса статического флага извне
+
     public static void ResetInspectionFlag()
     {
         isAnyItemBeingInspected = false;
-        Debug.LogWarning("[CollectableItem] Статический флаг isAnyItemBeingInspected был принудительно сброшен.");
     }
 
     public bool IsBeingInspected()
     {
         return isBeingInspected;
     }
-
-    // ... (весь остальной код без изменений) ...
-    public void RotateUp() { if (isBeingInspected && !isRotatingByButton) StartSmoothRotation(new Vector3(-buttonRotationStep, 0, 0), "вверх"); }
-    public void RotateDown() { if (isBeingInspected && !isRotatingByButton) StartSmoothRotation(new Vector3(buttonRotationStep, 0, 0), "вниз"); }
-    public void RotateLeft() { if (isBeingInspected && !isRotatingByButton) StartSmoothRotation(new Vector3(0, -buttonRotationStep, 0), "влево"); }
-    public void RotateRight() { if (isBeingInspected && !isRotatingByButton) StartSmoothRotation(new Vector3(0, buttonRotationStep, 0), "вправо"); }
-    public void RotateByButton(string direction) { Vector3 targetRotation; switch (direction.ToLower()) { case "up": targetRotation = new Vector3(-buttonRotationStep, 0, 0); break; case "down": targetRotation = new Vector3(buttonRotationStep, 0, 0); break; case "left": targetRotation = new Vector3(0, -buttonRotationStep, 0); break; case "right": targetRotation = new Vector3(0, buttonRotationStep, 0); break; default: return; } StartSmoothRotation(targetRotation, direction); }
-    private void StartSmoothRotation(Vector3 deltaRotation, string directionName) { if (currentRotationCoroutine != null) StopCoroutine(currentRotationCoroutine); currentRotationCoroutine = StartCoroutine(SmoothRotationCoroutine(deltaRotation, directionName)); }
-    private IEnumerator SmoothRotationCoroutine(Vector3 deltaRotation, string directionName) { isRotatingByButton = true; Quaternion startRotation = transform.rotation; Quaternion targetRotation = startRotation * Quaternion.Euler(deltaRotation); float elapsedTime = 0f; float rotationDuration = buttonRotationStep / buttonRotationSpeed; while (elapsedTime < rotationDuration) { elapsedTime += Time.deltaTime; float t = Mathf.SmoothStep(0f, 1f, elapsedTime / rotationDuration); transform.rotation = Quaternion.Lerp(startRotation, targetRotation, t); yield return null; } transform.rotation = targetRotation; isRotatingByButton = false; currentRotationCoroutine = null; }
-    public void CollectItemPublic() { if (isBeingInspected) CollectItem(); }
-    public void ExitInspectionPublic() { if (isBeingInspected) ExitInspectionMode(); }
 }
