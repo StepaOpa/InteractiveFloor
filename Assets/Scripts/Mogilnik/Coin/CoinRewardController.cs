@@ -18,44 +18,52 @@ public class CoinRewardController : MonoBehaviour
 
     private List<GameObject> spawnedCoins = new List<GameObject>();
 
-// В файле CoinRewardController.cs
-
+    // Главный публичный метод, который мы будем вызывать извне (например, из EndGamePanelUI)
     public void StartRewardSequence()
     {
-    // Убираем случайность и жестко задаем 1 монету
-    int numberOfCoins = 1; 
+        // Возвращаем случайное количество от 1 до 10
+        int numberOfCoins = Random.Range(1, 11); 
 
-    // Запускаем всю последовательность
-    StartCoroutine(RewardSequenceCoroutine(numberOfCoins));
+        // Запускаем всю последовательность
+        StartCoroutine(RewardSequenceCoroutine(numberOfCoins));
     }
-    // В файле CoinRewardController.cs
 
-    private IEnumerator RewardSequenceCoroutine(int count) // count мы больше не используем, но оставим для совместимости
+    private IEnumerator RewardSequenceCoroutine(int count)
     {
-    // 1. Очищаем старые монетки
-    ClearCoins();
+        // Перед началом всегда очищаем старые монетки, если они были
+        ClearCoins();
 
-    // Ждем один кадр, чтобы Unity успел удалить старые объекты, если они были
-    yield return null; 
+        // 1. Рассчитываем позиции для всех монеток
+        // Общая ширина всего ряда монеток
+        float totalWidth = (count - 1) * coinSpacing;
+        // Находим позицию самой левой монетки, чтобы весь ряд был отцентрован
+        Vector3 startOffset = new Vector3(-totalWidth / 2, 0, 0);
 
-    // 2. Рассчитываем позиции ровно для одной монетки в центре
-    // Финальная позиция - это просто центр нашего контейнера
-    Vector3 targetPosition = coinContainer.position;
+        // 2. Создаем монетки и запускаем их анимацию
+        for (int i = 0; i < count; i++)
+        {
+            // Вычисляем финальную позицию для текущей монетки
+            Vector3 targetPosition = coinContainer.position + startOffset + new Vector3(i * coinSpacing, 0, 0);
+            
+            // Начальная позиция будет высоко над финальной
+            Vector3 startPosition = targetPosition + startPositionOffset;
 
-    // Начальная позиция будет высоко над финальной
-    Vector3 startPosition = targetPosition + startPositionOffset;
+            // Создаем саму монетку
+            GameObject coinObject = Instantiate(coinPrefab, coinContainer);
+            spawnedCoins.Add(coinObject);
 
-    // 3. Создаем одну монетку
-    GameObject coinObject = Instantiate(coinPrefab, coinContainer);
-    spawnedCoins.Add(coinObject);
+            // Получаем ее скрипт аниматора
+            CoinAnimator animator = coinObject.GetComponent<CoinAnimator>();
+            if (animator != null)
+            {
+                // Даем команду на анимацию, передавая все нужные параметры:
+                // начальную и конечную позицию, а также задержки для падения и вращения.
+                animator.AnimateCoin(startPosition, targetPosition, i * delayBetweenDrops, i * delayBetweenSpins);
+            }
 
-    // 4. Запускаем ее анимацию без задержек
-    CoinAnimator animator = coinObject.GetComponent<CoinAnimator>();
-    if (animator != null)
-    {
-        // Передаем позиции и нулевые задержки, так как монетка одна
-        animator.AnimateCoin(startPosition, targetPosition, 0f, 0f);
-    }
+            // Ждем следующего кадра перед созданием новой монетки, чтобы не было лагов
+            yield return null;
+        }
     }
 
     // Метод для очистки монеток (полезен при перезапуске)
@@ -63,9 +71,11 @@ public class CoinRewardController : MonoBehaviour
     {
         foreach (var coin in spawnedCoins)
         {
-            Destroy(coin);
+            if (coin != null) // Добавим проверку на всякий случай
+            {
+                Destroy(coin);
+            }
         }
         spawnedCoins.Clear();
     }
 }
-

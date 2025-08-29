@@ -85,14 +85,16 @@ public class CoinAnimator : MonoBehaviour
 
             while (elapsedTime < spinDuration)
             {
-                // Используем unscaledDeltaTime, чтобы анимация работала на паузе
+                // Эта часть у нас уже исправлена
                 transform.rotation = Quaternion.Slerp(startRotation, endRotation, elapsedTime / spinDuration);
                 elapsedTime += Time.unscaledDeltaTime;
                 yield return null;
             }
             transform.rotation = startRotation;
 
-            // Используем WaitForSecondsRealtime, чтобы пауза работала даже при Time.timeScale = 0
+            // --- ВОТ ИСПРАВЛЕНИЕ ---
+            // Заменяем WaitForSeconds на WaitForSecondsRealtime
+            // Было: yield return new WaitForSeconds(pauseBetweenSpins);
             yield return new WaitForSecondsRealtime(pauseBetweenSpins);
         }
     }
