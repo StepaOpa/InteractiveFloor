@@ -5,6 +5,7 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    // Теперь это поле будет видно в инспекторе, но мы его будем заполнять кодом
     private EndGamePanelUI endGamePanelUI;
 
     void Awake()
@@ -32,23 +33,37 @@ public class GameManager : MonoBehaviour
     
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Сбрасываем время
         Time.timeScale = 1f;
-
-        // Сбрасываем флаг осмотра предмета
         CollectableItem.ResetInspectionFlag();
+
+        // --- ГЛАВНОЕ ИЗМЕНЕНИЕ ---
+        // Ищем объект EndGamePanelUI на сцене, даже если он выключен (true в скобках)
+        endGamePanelUI = FindObjectOfType<EndGamePanelUI>(true);
+
+        // Если нашли, сразу регистрируем
+        if (endGamePanelUI != null)
+        {
+            RegisterEndGamePanel(endGamePanelUI);
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager] Панель концовки не найдена на сцене при загрузке. Это нормально для главного меню.");
+        }
+        // -------------------------
     }
 
-    public void RegisterEndGamePanel(EndGamePanelUI panel)
+    // Этот метод теперь не вызывается извне, а только из OnSceneLoaded
+    private void RegisterEndGamePanel(EndGamePanelUI panel)
     {
         endGamePanelUI = panel;
         
         if (endGamePanelUI != null)
         {
-            endGamePanelUI.gameObject.SetActive(false);
+            // Убеждаемся, что панель выключена в начале
+            endGamePanelUI.gameObject.SetActive(false); 
             endGamePanelUI.restartButton.onClick.RemoveAllListeners();
             endGamePanelUI.restartButton.onClick.AddListener(RestartGame);
-            Debug.Log("[GameManager] Панель концовки успешно зарегистрирована и спрятана.");
+            Debug.Log("[GameManager] Панель концовки успешно найдена и настроена.");
         }
     }
 
@@ -57,6 +72,8 @@ public class GameManager : MonoBehaviour
         if (endGamePanelUI != null)
         {
             Time.timeScale = 0f;
+            // Теперь мы включаем панель прямо здесь
+            endGamePanelUI.gameObject.SetActive(true); 
             endGamePanelUI.ShowWin(finalScore);
             if (SoundManager.Instance != null) SoundManager.Instance.PlayWinSound();
         }
@@ -71,6 +88,8 @@ public class GameManager : MonoBehaviour
         if (endGamePanelUI != null)
         {
             Time.timeScale = 0f;
+            // И здесь тоже
+            endGamePanelUI.gameObject.SetActive(true);
             endGamePanelUI.ShowLose(finalScore, levelsCompleted);
             if (SoundManager.Instance != null) SoundManager.Instance.PlayLoseSound();
         }

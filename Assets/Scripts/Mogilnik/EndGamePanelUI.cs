@@ -1,40 +1,53 @@
+// Скорее всего, у тебя уже есть эти using'и
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
+using TMPro; // Если ты используешь TextMeshPro для текста
 
 public class EndGamePanelUI : MonoBehaviour
 {
-    [Header("Компоненты панели")]
-    [SerializeField] private TextMeshProUGUI titleText;
-    [SerializeField] private TextMeshProUGUI detailsText;
+    // --- У тебя здесь уже есть поля для текста и кнопок ---
+    [Header("Ссылки на UI элементы")]
+    [SerializeField] private TextMeshProUGUI titleText;   // Поле для "Победа!"/"Поражение"
+    [SerializeField] private TextMeshProUGUI detailsText; // Поле для "Набрано очков..."
     public Button restartButton;
-    public Button mainMenuButton;
+    [SerializeField] private Button menuButton;
+    
+    // <-- НОВОЕ 1/3: Добавляем ссылку на наш контроллер монет -->
+    [Header("Система наград")]
+    [SerializeField] private CoinRewardController coinRewardController;
 
-    void Start()
+
+
+
+    // <-- НОВОЕ 2/3: Добавляем этот метод, чтобы очищать монетки при перезапуске -->
+    void OnDisable()
     {
-        if (GameManager.Instance != null)
+        // Этот код сработает, когда панель выключается
+        if (coinRewardController != null)
         {
-            GameManager.Instance.RegisterEndGamePanel(this);
-        }
-        else
-        {
-            Debug.LogError("[EndGamePanelUI] Не удалось найти GameManager для регистрации!");
+            coinRewardController.ClearCoins();
         }
     }
-    
+
+    // Этот метод у тебя уже есть. Мы просто добавим в него одну строчку.
     public void ShowWin(int finalScore)
     {
-        gameObject.SetActive(true);
         titleText.text = "Победа!";
         detailsText.text = $"Все уровни пройдены!\nНабрано очков: {finalScore}";
+        gameObject.SetActive(true);
+
+        // <-- НОВОЕ 3/3: ЗАПУСКАЕМ АНИМАЦИЮ МОНЕТОК! -->
+        if (coinRewardController != null)
+        {
+            coinRewardController.StartRewardSequence();
+        }
     }
-    
+
+    // Этот метод у тебя тоже должен быть. Мы его не трогаем, но убедимся, что он на месте.
     public void ShowLose(int finalScore, int levelsCompleted)
     {
+        titleText.text = "Поражение";
+        detailsText.text = $"Пройдено уровней: {levelsCompleted}\nНабрано очков: {finalScore}";
         gameObject.SetActive(true);
-        titleText.text = "Упс, время вышло.";
-
-        // <-- ИЗМЕНЕНИЕ 2: Форматируем текст по вашему желанию
-        detailsText.text = $"Пройдено уровней: {levelsCompleted - 1}\nНабрано очков: {finalScore}";
     }
 }
