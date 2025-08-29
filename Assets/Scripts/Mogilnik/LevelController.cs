@@ -10,12 +10,11 @@ public class LevelController : MonoBehaviour
     
     [Header("Компоненты игры")]
     [SerializeField] private LevelTimer levelTimer;
-    [SerializeField] private GameObject newLevelEffectPrefab; // <-- ВОТ НОВОЕ ПОЛЕ ДЛЯ ЭФФЕКТА
+    [SerializeField] private GameObject newLevelEffectPrefab;
 
     private List<GameObject> activeLevels = new List<GameObject>();
     private int currentLevelIndex = 0;
 
-    // --- ФЛАГИ ДЛЯ УПРАВЛЕНИЯ ФАЗАМИ ---
     private bool diggingPhaseComplete = false;
     private bool levelIsComplete = false; 
 
@@ -24,14 +23,16 @@ public class LevelController : MonoBehaviour
         InitializeLevel();
     }
 
-    // Метод для инициализации уровня (используется в Start и при переходе на новый)
     void InitializeLevel()
     {
         diggingPhaseComplete = false;
         levelIsComplete = false;
+        
+        if (UIController.Instance != null)
+        {
+            UIController.Instance.ResetForNewLevel();
+        }
 
-        // Если мы переходим на новый уровень, а не стартуем игру,
-        // нужно создать новый объект уровня
         if (currentLevelIndex < levelPlanePrefabs.Count && activeLevels.Count <= currentLevelIndex)
         {
             float currentHeight = startLevelHeight + (currentLevelIndex * levelHeight);
@@ -40,31 +41,27 @@ public class LevelController : MonoBehaviour
             level.name = $"Level_{currentLevelIndex + 1}";
             activeLevels.Add(level);
 
-            // --- ИЗМЕНЕНИЕ: ЗАПУСКАЕМ ЭФФЕКТ ПЕРЕХОДА ---
-            // Проверяем, что префаб назначен и что это не самый первый уровень
             if (newLevelEffectPrefab != null && currentLevelIndex > 0) 
             {
-                // Создаем эффект в центре нового уровня
                 Instantiate(newLevelEffectPrefab, spawnPosition, Quaternion.identity);
             }
-            // ---------------------------------------------
 
-            // Генерируем DigSpot'ы для нового уровня
             LevelPlane levelPlane = level.GetComponent<LevelPlane>();
             if (levelPlane != null)
             {
-                // -- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ --
-                // 1. Получаем общее количество предметов с уровня
-                int totalItems = levelPlane.GetTotalItemsCount();
+                // --- ВОТ ИСПРАВЛЕННАЯ ЛОГИКА ---
+                // 1. СНАЧАЛА генерируем предметы. Внутри этого метода происходит их подсчет.
+                levelPlane.GenerateItems();
                 
-                // 2. Сразу же отправляем это число в UI
+                // 2. ПОТОМ получаем уже готовый результат подсчета.
+                int valuableItems = levelPlane.GetTotalItemsCount();
+                
+                // 3. И ТОЛЬКО ТЕПЕРЬ отправляем правильное число в UI.
                 if (UIController.Instance != null)
                 {
-                    UIController.Instance.SetTotalItemsCount(totalItems);
+                    UIController.Instance.SetTotalItemsCount(valuableItems);
                 }
-
-                // 3. Запускаем генерацию, как и раньше
-                levelPlane.GenerateItems();
+                // ------------------------------------
             }
         }
         
@@ -73,7 +70,6 @@ public class LevelController : MonoBehaviour
             levelTimer.StartTimer();
         }
 
-        // Звук играем только если это не первый уровень
         if (currentLevelIndex > 0 && SoundManager.Instance != null)
         {
             SoundManager.Instance.PlayNewLevelSound();
@@ -95,29 +91,32 @@ public class LevelController : MonoBehaviour
         GameObject currentLevelObject = activeLevels[currentLevelIndex];
         if (currentLevelObject == null) return;
         
-        // --- ИСПРАВЛЕННАЯ ЛОГИКА ПОИСКА ---
-        // Теперь мы будем искать предметы и зоны раскопок только внутри текущего уровня.
-
-        // --- ФАЗА 1: РАСКОПКИ ---
         if (!diggingPhaseComplete)
         {
-            // GetComponentInChildren найдет компонент в себе или в любом из своих детей
             if (currentLevelObject.GetComponentInChildren<DigSpot>() == null)
             {
-                // Если ни одного DigSpot'а не найдено, значит, фаза раскопок завершена
                 diggingPhaseComplete = true;
-                Debug.Log("Фаза раскопок завершена! Теперь соберите все предметы.");
+                Debug.Log("Фаза раскопок завершена! Теперь соберите все ценные предметы.");
             }
         }
-        // --- ФАЗА 2: СБОР ---
         else 
         {
-            // Точно так же ищем CollectableItem
-            if (currentLevelObject.GetComponentInChildren<CollectableItem>() == null)
+            CollectableItem[] remainingItems = currentLevelObject.GetComponentsInChildren<CollectableItem>();
+            
+            bool valuableItemsRemain = false;
+            foreach (CollectableItem item in remainingItems)
             {
-                // Если ни одного предмета не найдено, уровень пройден!
+                if (item.itemValue > 0)
+                {
+                    valuableItemsRemain = true;
+                    break;
+                }
+            }
+
+            if (!valuableItemsRemain)
+            {
                 levelIsComplete = true;
-                Debug.Log("Все предметы собраны! Уровень пройден.");
+                Debug.Log("Все ценные предметы собраны! Уровень пройден.");
                 CompleteCurrentLevel();
             }
         }
@@ -125,12 +124,18 @@ public class LevelController : MonoBehaviour
     
     private void CompleteCurrentLevel()
     {
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.StopAllSounds();
+        }
+
         if (levelTimer != null)
         {
             levelTimer.StopTimer();
         }
+        
+        DestroyRemainingTrash();
 
-        // Уничтожаем объект пройденного уровня
         if (currentLevelIndex < activeLevels.Count && activeLevels[currentLevelIndex] != null)
         {
             Destroy(activeLevels[currentLevelIndex]);
@@ -140,6 +145,19 @@ public class LevelController : MonoBehaviour
         MoveToNextLevel();
     }
     
+    private void DestroyRemainingTrash()
+    {
+        if (activeLevels.Count <= 0 || currentLevelIndex >= activeLevels.Count) return;
+        GameObject currentLevelObject = activeLevels[currentLevelIndex];
+        if (currentLevelObject == null) return;
+
+        CollectableItem[] remainingItems = currentLevelObject.GetComponentsInChildren<CollectableItem>();
+        foreach (CollectableItem item in remainingItems)
+        {
+            Destroy(item.gameObject);
+        }
+    }
+
     private void MoveToNextLevel()
     {
         if (UIController.Instance != null)
@@ -153,7 +171,6 @@ public class LevelController : MonoBehaviour
         }
         else
         {
-            // Инициализируем следующий уровень
             InitializeLevel();
         }
     }

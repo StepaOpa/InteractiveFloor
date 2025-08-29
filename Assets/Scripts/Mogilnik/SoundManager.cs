@@ -1,40 +1,37 @@
 using UnityEngine;
-using System.Collections; // Добавлено для корутин
+using System.Collections;
+using UnityEngine.SceneManagement; // Добавлено для отслеживания загрузки сцен
 
-// Требуем, чтобы на этом объекте всегда был компонент AudioSource
 [RequireComponent(typeof(AudioSource))]
 public class SoundManager : MonoBehaviour
 {
-    // Singleton для легкого доступа из любого другого скрипта
     public static SoundManager Instance { get; private set; }
 
-    // Ссылки на все ваши аудиофайлы. Вы перетащите их в инспекторе.
     [Header("Звуки событий")]
     [SerializeField] private AudioClip newLevelSound;
     [SerializeField] private AudioClip winSound;
     [SerializeField] private AudioClip loseSound;
 
     [Header("Звуки геймплея")]
-    [SerializeField] private AudioClip digTapSound;       // Звук тапа (копания)
-    [SerializeField] private AudioClip itemRevealSound;   // Звук появления предмета
-    [SerializeField] private AudioClip timerTickSound;    // Звук тиканья таймера
+    [SerializeField] private AudioClip digTapSound;
+    [SerializeField] private AudioClip itemRevealSound;
+    [SerializeField] private AudioClip timerTickSound;
 
     [Header("Звуки предметов")]
-    [SerializeField] private AudioClip pickupItemSound;      // Поднятие для осмотра
-    [SerializeField] private AudioClip inventoryAddSound;    // Успешно добавлен в инвентарь
-    [SerializeField] private AudioClip itemDropSound;        // Выбросить/вернуть на место
-    [SerializeField] private AudioClip errorSound;           // Попытка взять мусор
+    [SerializeField] private AudioClip pickupItemSound;
+    [SerializeField] private AudioClip inventoryAddSound;
+    [SerializeField] private AudioClip itemDropSound;
+    [SerializeField] private AudioClip errorSound;
 
     private AudioSource audioSource;
-    private bool isTicking = false; // Флаг, чтобы звук тиканья не запускался много раз
+    private Coroutine tickingCoroutine = null;
 
     void Awake()
     {
-        // Настройка Singleton
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // Делаем менеджер постоянным между сценами
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -42,109 +39,79 @@ public class SoundManager : MonoBehaviour
             return;
         }
 
-        // Получаем доступ к компоненту AudioSource
         audioSource = GetComponent<AudioSource>();
+        
+        // Эта строка КРИТИЧЕСКИ ВАЖНА. Она позволяет звукам работать, когда игра на паузе (Time.timeScale = 0).
+        audioSource.ignoreListenerPause = true;
     }
 
-    // Далее идут публичные методы, которые будут вызывать другие скрипты
-
-    public void PlayNewLevelSound()
+    void OnEnable()
     {
-        if (newLevelSound != null)
-        {
-            audioSource.PlayOneShot(newLevelSound);
-        }
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    public void PlayWinSound()
+    void OnDisable()
     {
-        if (winSound != null)
-        {
-            audioSource.PlayOneShot(winSound);
-        }
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    public void PlayLoseSound()
+    // Этот метод вызывается при каждой загрузке сцены (включая рестарт)
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (loseSound != null)
-        {
-            audioSource.PlayOneShot(loseSound);
-        }
+        // Гарантированно глушим все звуки из прошлой игровой сессии.
+        StopAllSounds();
     }
 
-    public void PlayPickupItemSound()
+    // --- ГЛАВНЫЙ НОВЫЙ МЕТОД ---
+    public void StopAllSounds()
     {
-        if (pickupItemSound != null)
+        // 1. Останавливаем корутину таймера, если она была запущена.
+        if (tickingCoroutine != null)
         {
-            audioSource.PlayOneShot(pickupItemSound);
+            StopCoroutine(tickingCoroutine);
+            tickingCoroutine = null;
         }
+        
+        // 2. Глушим любые другие звуки, которые могли играть.
+        audioSource.Stop();
     }
 
-    public void PlayInventoryAddSound()
-    {
-        if (inventoryAddSound != null)
-        {
-            audioSource.PlayOneShot(inventoryAddSound);
-        }
-    }
-
-    public void PlayItemDropSound()
-    {
-        if (itemDropSound != null)
-        {
-            audioSource.PlayOneShot(itemDropSound);
-        }
-    }
-
-    public void PlayErrorSound()
-    {
-        if (errorSound != null)
-        {
-            audioSource.PlayOneShot(errorSound);
-        }
-    }
-    
-    // --- НОВЫЕ МЕТОДЫ ---
-    
-    public void PlayDigSound()
-    {
-        if (digTapSound != null)
-        {
-            audioSource.PlayOneShot(digTapSound);
-        }
-    }
-
-    public void PlayItemRevealSound()
-    {
-        if (itemRevealSound != null)
-        {
-            audioSource.PlayOneShot(itemRevealSound);
-        }
-    }
-
-    // Метод для тиканья, который проигрывает звук в цикле
+    // --- Логика таймера ---
     public void StartTickingSound()
     {
-        if (timerTickSound != null && !isTicking)
+        if (tickingCoroutine == null && timerTickSound != null)
         {
-            isTicking = true;
-            // Запускаем корутину, чтобы проигрывать звук каждую секунду
-            StartCoroutine(TickingCoroutine());
+            tickingCoroutine = StartCoroutine(TickingCoroutine());
         }
     }
-
+    
+    // Этот метод теперь является частью StopAllSounds, но пусть останется для явного вызова из LevelTimer
     public void StopTickingSound()
     {
-        isTicking = false;
-        // Остановка корутины не нужна, она сама остановится благодаря флагу
-    }
-
-    private IEnumerator TickingCoroutine()
-    {
-        while (isTicking)
+        if (tickingCoroutine != null)
         {
-            audioSource.PlayOneShot(timerTickSound);
-            yield return new WaitForSecondsRealtime(1f); // Используем Realtime, чтобы звук работал даже на паузе
+            StopCoroutine(tickingCoroutine);
+            tickingCoroutine = null;
         }
     }
+    
+    private IEnumerator TickingCoroutine()
+    {
+        while (true)
+        {
+            audioSource.PlayOneShot(timerTickSound);
+            yield return new WaitForSecondsRealtime(1f);
+        }
+    }
+
+    // Все методы Play... остаются без изменений
+    public void PlayNewLevelSound() { if (newLevelSound != null) audioSource.PlayOneShot(newLevelSound); }
+    public void PlayWinSound() { if (winSound != null) audioSource.PlayOneShot(winSound); }
+    public void PlayLoseSound() { if (loseSound != null) audioSource.PlayOneShot(loseSound); }
+    public void PlayPickupItemSound() { if (pickupItemSound != null) audioSource.PlayOneShot(pickupItemSound); }
+    public void PlayInventoryAddSound() { if (inventoryAddSound != null) audioSource.PlayOneShot(inventoryAddSound); }
+    public void PlayItemDropSound() { if (itemDropSound != null) audioSource.PlayOneShot(itemDropSound); }
+    public void PlayErrorSound() { if (errorSound != null) audioSource.PlayOneShot(errorSound); }
+    public void PlayDigSound() { if (digTapSound != null) audioSource.PlayOneShot(digTapSound); }
+    public void PlayItemRevealSound() { if (itemRevealSound != null) audioSource.PlayOneShot(itemRevealSound); }
 }

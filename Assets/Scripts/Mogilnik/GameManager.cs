@@ -5,7 +5,6 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    // Теперь это поле будет видно в инспекторе, но мы его будем заполнять кодом
     private EndGamePanelUI endGamePanelUI;
 
     void Awake()
@@ -36,11 +35,8 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 1f;
         CollectableItem.ResetInspectionFlag();
 
-        // --- ГЛАВНОЕ ИЗМЕНЕНИЕ ---
-        // Ищем объект EndGamePanelUI на сцене, даже если он выключен (true в скобках)
         endGamePanelUI = FindObjectOfType<EndGamePanelUI>(true);
 
-        // Если нашли, сразу регистрируем
         if (endGamePanelUI != null)
         {
             RegisterEndGamePanel(endGamePanelUI);
@@ -49,17 +45,14 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogWarning("[GameManager] Панель концовки не найдена на сцене при загрузке. Это нормально для главного меню.");
         }
-        // -------------------------
     }
 
-    // Этот метод теперь не вызывается извне, а только из OnSceneLoaded
     private void RegisterEndGamePanel(EndGamePanelUI panel)
     {
         endGamePanelUI = panel;
         
         if (endGamePanelUI != null)
         {
-            // Убеждаемся, что панель выключена в начале
             endGamePanelUI.gameObject.SetActive(false); 
             endGamePanelUI.restartButton.onClick.RemoveAllListeners();
             endGamePanelUI.restartButton.onClick.AddListener(RestartGame);
@@ -71,11 +64,25 @@ public class GameManager : MonoBehaviour
     {
         if (endGamePanelUI != null)
         {
+            // --- НОВАЯ НАДЕЖНАЯ ЛОГИКА ---
+            // 1. СНАЧАЛА: Принудительно останавливаем ВСЕ звуки.
+            if (SoundManager.Instance != null)
+            {
+                SoundManager.Instance.StopAllSounds();
+            }
+
+            // 2. ПОТОМ: Ставим игру на паузу.
             Time.timeScale = 0f;
-            // Теперь мы включаем панель прямо здесь
+            
+            // 3. Показываем панель.
             endGamePanelUI.gameObject.SetActive(true); 
             endGamePanelUI.ShowWin(finalScore);
-            if (SoundManager.Instance != null) SoundManager.Instance.PlayWinSound();
+
+            // 4. В САМОМ КОНЦЕ: Проигрываем звук победы.
+            if (SoundManager.Instance != null)
+            {
+                SoundManager.Instance.PlayWinSound();
+            }
         }
         else
         {
@@ -87,11 +94,25 @@ public class GameManager : MonoBehaviour
     {
         if (endGamePanelUI != null)
         {
+            // --- НОВАЯ НАДЕЖНАЯ ЛОГИКА ---
+            // 1. СНАЧАЛА: Принудительно останавливаем ВСЕ звуки.
+            if (SoundManager.Instance != null)
+            {
+                SoundManager.Instance.StopAllSounds();
+            }
+
+            // 2. ПОТОМ: Ставим игру на паузу.
             Time.timeScale = 0f;
-            // И здесь тоже
+
+            // 3. Показываем панель.
             endGamePanelUI.gameObject.SetActive(true);
             endGamePanelUI.ShowLose(finalScore, levelsCompleted);
-            if (SoundManager.Instance != null) SoundManager.Instance.PlayLoseSound();
+
+            // 4. В САМОМ КОНЦЕ: Проигрываем звук поражения.
+            if (SoundManager.Instance != null)
+            {
+                SoundManager.Instance.PlayLoseSound();
+            }
         }
         else
         {

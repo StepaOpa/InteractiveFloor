@@ -9,35 +9,33 @@ public class UIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI currentLevelText;
     [SerializeField] private TextMeshProUGUI inventoryCountText;
-    [SerializeField] private Transform inventoryGridParent; // Родитель с Grid Layout Group для предметов
+    [SerializeField] private Transform inventoryGridParent; 
 
     [Header("Префабы для инвентаря")]
-    [SerializeField] private GameObject inventoryItemPrefab; // Префаб UI элемента с Image компонентом
-    [SerializeField] private GameObject itemBackgroundPrefab; // Префаб подложки под иконкой
+    [SerializeField] private GameObject inventoryItemPrefab; 
+    [SerializeField] private GameObject itemBackgroundPrefab; 
 
     [Header("Настройки")]
     [SerializeField] private string scorePrefix = "Очки: ";
     [SerializeField] private string levelPrefix = "Уровень: ";
     [SerializeField] private string inventoryPrefix = "Предметов: ";
 
-    // Данные игрока
     private int currentScore = 0;
     private int currentLevel = 1;
     private List<InventoryItem> inventoryItems = new List<InventoryItem>();
     
-    // ИЗМЕНЕНИЕ: Переменная для хранения общего количества предметов
-    private int totalCollectableItems = 0;
+    private int totalValuableItems = 0; // Общее кол-во ЦЕННЫХ предметов на уровне
+    private int collectedOnLevel = 0; // Собрано ЦЕННЫХ предметов на уровне
 
     public static UIController Instance { get; private set; }
 
-    // Класс для хранения данных предмета в инвентаре
     [System.Serializable]
     public class InventoryItem
     {
         public string itemName;
         public Sprite itemIcon;
         public int itemValue;
-        public GameObject uiElement; // Ссылка на UI элемент в инвентаре
+        public GameObject uiElement;
 
         public InventoryItem(string name, Sprite icon, int value)
         {
@@ -49,7 +47,6 @@ public class UIController : MonoBehaviour
 
     void Awake()
     {
-        // Реализация Singleton
         if (Instance == null)
         {
             Instance = this;
@@ -70,8 +67,6 @@ public class UIController : MonoBehaviour
 
     private void InitializeUI()
     {
-        Debug.Log("[UIController] Инициализация UI...");
-
         if (scoreText == null) Debug.LogWarning("[UIController] Score Text не назначен!");
         if (currentLevelText == null) Debug.LogWarning("[UIController] Current Level Text не назначен!");
         if (inventoryCountText == null) Debug.LogWarning("[UIController] Inventory Count Text не назначен!");
@@ -87,25 +82,34 @@ public class UIController : MonoBehaviour
         UpdateInventoryCountUI();
     }
     
-    // ИЗМЕНЕНИЕ: Новый публичный метод для установки общего числа предметов
     public void SetTotalItemsCount(int totalCount)
     {
-        totalCollectableItems = totalCount;
+        totalValuableItems = totalCount;
         UpdateInventoryCountUI(); 
-        Debug.Log($"[UIController] Установлено общее количество предметов: {totalCount}");
+        Debug.Log($"[UIController] Установлено общее количество ценных предметов: {totalCount}");
+    }
+
+    public void ResetForNewLevel()
+    {
+        foreach (Transform child in inventoryGridParent)
+        {
+            Destroy(child.gameObject);
+        }
+        inventoryItems.Clear();
+        collectedOnLevel = 0;
+        Debug.Log("[UIController] Инвентарь и счетчики сброшены для нового уровня.");
+        UpdateInventoryCountUI();
     }
 
     public void AddScore(int points)
     {
         currentScore += points;
         UpdateScoreUI();
-        Debug.Log($"[UIController] Добавлено очков: {points}. Общий счет: {currentScore}");
     }
     public void SetCurrentLevel(int level)
     {
         currentLevel = level;
         UpdateLevelUI();
-        Debug.Log($"[UIController] Установлен уровень: {level}");
     }
 
     private void UpdateScoreUI()
@@ -124,37 +128,25 @@ public class UIController : MonoBehaviour
         }
     }
 
-    // ИЗМЕНЕНИЕ: Логика отображения счетчика
     private void UpdateInventoryCountUI()
     {
         if (inventoryCountText != null)
         {
-            inventoryCountText.text = inventoryPrefix + inventoryItems.Count.ToString() + " / " + totalCollectableItems.ToString();
+            inventoryCountText.text = inventoryPrefix + collectedOnLevel.ToString() + " / " + totalValuableItems.ToString();
         }
     }
 
-    public int GetCurrentScore()
-    {
-        return currentScore;
-    }
+    public int GetCurrentScore() { return currentScore; }
+    public int GetCurrentLevel() { return currentLevel; }
 
-    public int GetCurrentLevel()
-    {
-        return currentLevel;
-    }
-
-    public int GetInventoryCount()
-    {
-        return inventoryItems.Count;
-    }
-
-    public List<InventoryItem> GetInventoryItems()
-    {
-        return new List<InventoryItem>(inventoryItems);
-    }
-
+    // --- ВОТ ИЗМЕНЕННЫЙ МЕТОД ---
     public void AddItemToInventory(string name, Sprite icon, int value)
     {
+        // Шаг 1: Очки начисляются или списываются для ЛЮБОГО предмета.
+        AddScore(value);
+
+        // Шаг 2: Создаем визуальное представление (иконку) в инвентаре для ЛЮБОГО предмета.
+        // Этот блок кода теперь находится вне всяких условий.
         InventoryItem newItem = new InventoryItem(name, icon, value);
 
         GameObject backgroundUI = null;
@@ -169,28 +161,18 @@ public class UIController : MonoBehaviour
         InventoryItemUI itemUIComponent = itemUI.GetComponent<InventoryItemUI>();
         if (itemUIComponent != null)
         {
-            Debug.Log($"[UIController] Устанавливаю спрайт для '{name}': {icon?.name ?? "null"}");
             itemUIComponent.SetSprite(icon);
         }
-        else
+        
+        inventoryItems.Add(newItem); // Добавляем в логический список, чтобы можно было его очистить при сбросе уровня
+
+        // Шаг 3: А вот счетчик "собрано / всего" мы увеличиваем ТОЛЬКО для ценных предметов.
+        if (value > 0)
         {
-            Debug.LogError($"[UIController] InventoryItemUI компонент не найден на префабе для '{name}'!");
+            collectedOnLevel++;
         }
-
-        inventoryItems.Add(newItem);
-        AddScore(value);
-        UpdateInventoryCountUI();
-    }
-
-    public void ClearInventory()
-    {
-        foreach (var item in inventoryItems)
-        {
-            if (item.uiElement != null)
-                Destroy(item.uiElement);
-        }
-
-        inventoryItems.Clear();
+        
+        // Шаг 4: Обновляем текст счетчика. Он покажет правильное количество собранных ЦЕННОСТЕЙ.
         UpdateInventoryCountUI();
     }
 }

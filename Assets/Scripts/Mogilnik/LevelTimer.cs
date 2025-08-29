@@ -13,8 +13,8 @@ public class LevelTimer : MonoBehaviour
 
     private float timeRemaining;
     private bool isTimerRunning = false;
-    private bool timeUpHandled = false; // <-- ВОТ ЭТОТ ФЛАГ РЕШИТ ПРОБЛЕМУ
-    private bool isTickingSoundStarted = false; // Флаг для звука
+    private bool timeUpHandled = false;
+    private bool isTickingSoundStarted = false;
 
     void Update()
     {
@@ -24,7 +24,6 @@ public class LevelTimer : MonoBehaviour
             {
                 timeRemaining -= Time.deltaTime;
 
-                // Если времени осталось 5 секунд или меньше и звук еще не запущен
                 if (timeRemaining <= 5.0f && !isTickingSoundStarted)
                 {
                     isTickingSoundStarted = true;
@@ -65,8 +64,8 @@ public class LevelTimer : MonoBehaviour
     {
         timeRemaining = levelTime;
         isTimerRunning = true;
-        timeUpHandled = false; // <-- СБРАСЫВАЕМ ФЛАГ ПРИ СТАРТЕ НОВОГО ТАЙМЕРА
-        isTickingSoundStarted = false; // Сбрасываем флаг звука
+        timeUpHandled = false;
+        isTickingSoundStarted = false; // Сбрасываем флаг при старте
         Debug.Log("[LevelTimer] Таймер запущен!");
     }
 
@@ -74,10 +73,10 @@ public class LevelTimer : MonoBehaviour
     {
         isTimerRunning = false;
         
-        // Останавливаем тиканье при успешном завершении уровня
-        if (SoundManager.Instance != null)
+        if (isTickingSoundStarted && SoundManager.Instance != null)
         {
             SoundManager.Instance.StopTickingSound();
+            isTickingSoundStarted = false; // Сбрасываем флаг
         }
 
         Debug.Log("[LevelTimer] Таймер остановлен.");
@@ -85,27 +84,41 @@ public class LevelTimer : MonoBehaviour
 
     private void TimeUp()
     {
-        if (timeUpHandled) return; // <-- ЕСЛИ МЕТОД УЖЕ ВЫЗЫВАЛСЯ, ВЫХОДИМ
+        if (timeUpHandled) return;
         timeUpHandled = true;
-
-        // Останавливаем тиканье при проигрыше
-        if (SoundManager.Instance != null)
-        {
-            SoundManager.Instance.StopTickingSound();
-        }
 
         Debug.LogWarning("[LevelTimer] ВРЕМЯ ВЫШЛО!");
 
-        // Принудительно прячем UI осмотра
+        // GameManager теперь сам остановит звук, но для надежности можно оставить
+        if (isTickingSoundStarted && SoundManager.Instance != null)
+        {
+            SoundManager.Instance.StopTickingSound();
+            isTickingSoundStarted = false;
+        }
+
         if (InspectionUI.Instance != null)
         {
             InspectionUI.Instance.ForceHide();
         }
 
-        // Вызываем экран поражения через GameManager
-        GameManager.Instance.ShowLoseScreen(
-            UIController.Instance.GetCurrentScore(),
-            UIController.Instance.GetCurrentLevel()
-        );
+        if (GameManager.Instance != null) // Добавим проверку на всякий случай
+        {
+            GameManager.Instance.ShowLoseScreen(
+                UIController.Instance.GetCurrentScore(),
+                UIController.Instance.GetCurrentLevel()
+            );
+        }
+    }
+
+    // --- ДОБАВЛЕНО ДЛЯ НАДЕЖНОСТИ ---
+    // Этот метод автоматически вызывается Unity перед уничтожением объекта
+    // (например, при перезагрузке сцены). Это наша главная страховка.
+    private void OnDestroy()
+    {
+        // Если звук тикал, и мы покидаем сцену, его нужно принудительно остановить.
+        if (isTickingSoundStarted && SoundManager.Instance != null)
+        {
+            SoundManager.Instance.StopTickingSound();
+        }
     }
 }

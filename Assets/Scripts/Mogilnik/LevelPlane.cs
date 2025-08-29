@@ -21,12 +21,11 @@ public class LevelPlane : MonoBehaviour
     [SerializeField] private float maxZ = 1.8f;
 
     private List<Vector3> spawnedPositions = new List<Vector3>();
+    private int valuableItemsCount = 0;
 
-    // <-- ИЗМЕНЕНИЕ: Новый публичный метод -->
-    // Он просто возвращает количество предметов, которое будет сгенерировано.
     public int GetTotalItemsCount()
     {
-        return digSpotsCount;
+        return valuableItemsCount;
     }
     
     public void GenerateItems()
@@ -38,6 +37,7 @@ public class LevelPlane : MonoBehaviour
         }
 
         spawnedPositions.Clear();
+        valuableItemsCount = 0;
 
         for (int i = 0; i < digSpotsCount; i++)
         {
@@ -57,16 +57,37 @@ public class LevelPlane : MonoBehaviour
             spawnedPositions.Add(spawnPosition);
             
             int randomItemIndex = Random.Range(0, possibleItemPrefabs.Count);
-            GameObject itemToHide = possibleItemPrefabs[randomItemIndex];
+            GameObject itemToHidePrefab = possibleItemPrefabs[randomItemIndex];
+
+            CollectableItem itemInfo = itemToHidePrefab.GetComponent<CollectableItem>();
+
+            // --- ДИАГНОСТИЧЕСКАЯ СТРОКА ---
+            // Эта строка выведет в консоль имя префаба и его ценность, которую видит игра.
+            if (itemInfo != null)
+            {
+                Debug.Log($"[LevelPlane] Проверка префаба: '{itemToHidePrefab.name}', его ценность: {itemInfo.itemValue}");
+            }
+            else
+            {
+                Debug.LogError($"[LevelPlane] На префабе '{itemToHidePrefab.name}' отсутствует скрипт CollectableItem!");
+            }
+            // ---------------------------------
+
+            if (itemInfo != null && itemInfo.itemValue > 0)
+            {
+                valuableItemsCount++;
+            }
 
             GameObject newDigSpotObject = Instantiate(digSpotPrefab, spawnPosition, Quaternion.identity, transform);
 
             DigSpot digSpotScript = newDigSpotObject.GetComponent<DigSpot>();
             if (digSpotScript != null)
             {
-                digSpotScript.hiddenItemPrefab = itemToHide;
+                digSpotScript.hiddenItemPrefab = itemToHidePrefab;
             }
         }
+        
+        Debug.Log($"[LevelPlane] Генерация завершена. Найдено ценных предметов: {valuableItemsCount}");
     }
     
     private bool IsPositionValid(Vector3 position)
