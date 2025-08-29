@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections; // Добавлено для корутин
 
 // Требуем, чтобы на этом объекте всегда был компонент AudioSource
 [RequireComponent(typeof(AudioSource))]
@@ -13,6 +14,11 @@ public class SoundManager : MonoBehaviour
     [SerializeField] private AudioClip winSound;
     [SerializeField] private AudioClip loseSound;
 
+    [Header("Звуки геймплея")]
+    [SerializeField] private AudioClip digTapSound;       // Звук тапа (копания)
+    [SerializeField] private AudioClip itemRevealSound;   // Звук появления предмета
+    [SerializeField] private AudioClip timerTickSound;    // Звук тиканья таймера
+
     [Header("Звуки предметов")]
     [SerializeField] private AudioClip pickupItemSound;      // Поднятие для осмотра
     [SerializeField] private AudioClip inventoryAddSound;    // Успешно добавлен в инвентарь
@@ -20,6 +26,7 @@ public class SoundManager : MonoBehaviour
     [SerializeField] private AudioClip errorSound;           // Попытка взять мусор
 
     private AudioSource audioSource;
+    private bool isTicking = false; // Флаг, чтобы звук тиканья не запускался много раз
 
     void Awake()
     {
@@ -94,6 +101,50 @@ public class SoundManager : MonoBehaviour
         if (errorSound != null)
         {
             audioSource.PlayOneShot(errorSound);
+        }
+    }
+    
+    // --- НОВЫЕ МЕТОДЫ ---
+    
+    public void PlayDigSound()
+    {
+        if (digTapSound != null)
+        {
+            audioSource.PlayOneShot(digTapSound);
+        }
+    }
+
+    public void PlayItemRevealSound()
+    {
+        if (itemRevealSound != null)
+        {
+            audioSource.PlayOneShot(itemRevealSound);
+        }
+    }
+
+    // Метод для тиканья, который проигрывает звук в цикле
+    public void StartTickingSound()
+    {
+        if (timerTickSound != null && !isTicking)
+        {
+            isTicking = true;
+            // Запускаем корутину, чтобы проигрывать звук каждую секунду
+            StartCoroutine(TickingCoroutine());
+        }
+    }
+
+    public void StopTickingSound()
+    {
+        isTicking = false;
+        // Остановка корутины не нужна, она сама остановится благодаря флагу
+    }
+
+    private IEnumerator TickingCoroutine()
+    {
+        while (isTicking)
+        {
+            audioSource.PlayOneShot(timerTickSound);
+            yield return new WaitForSecondsRealtime(1f); // Используем Realtime, чтобы звук работал даже на паузе
         }
     }
 }

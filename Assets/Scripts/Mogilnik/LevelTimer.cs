@@ -14,6 +14,7 @@ public class LevelTimer : MonoBehaviour
     private float timeRemaining;
     private bool isTimerRunning = false;
     private bool timeUpHandled = false; // <-- ВОТ ЭТОТ ФЛАГ РЕШИТ ПРОБЛЕМУ
+    private bool isTickingSoundStarted = false; // Флаг для звука
 
     void Update()
     {
@@ -22,6 +23,17 @@ public class LevelTimer : MonoBehaviour
             if (timeRemaining > 0)
             {
                 timeRemaining -= Time.deltaTime;
+
+                // Если времени осталось 5 секунд или меньше и звук еще не запущен
+                if (timeRemaining <= 5.0f && !isTickingSoundStarted)
+                {
+                    isTickingSoundStarted = true;
+                    if (SoundManager.Instance != null)
+                    {
+                        SoundManager.Instance.StartTickingSound();
+                    }
+                }
+
                 UpdateTimerUI();
             }
             else
@@ -54,12 +66,20 @@ public class LevelTimer : MonoBehaviour
         timeRemaining = levelTime;
         isTimerRunning = true;
         timeUpHandled = false; // <-- СБРАСЫВАЕМ ФЛАГ ПРИ СТАРТЕ НОВОГО ТАЙМЕРА
+        isTickingSoundStarted = false; // Сбрасываем флаг звука
         Debug.Log("[LevelTimer] Таймер запущен!");
     }
 
     public void StopTimer()
     {
         isTimerRunning = false;
+        
+        // Останавливаем тиканье при успешном завершении уровня
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.StopTickingSound();
+        }
+
         Debug.Log("[LevelTimer] Таймер остановлен.");
     }
 
@@ -67,6 +87,12 @@ public class LevelTimer : MonoBehaviour
     {
         if (timeUpHandled) return; // <-- ЕСЛИ МЕТОД УЖЕ ВЫЗЫВАЛСЯ, ВЫХОДИМ
         timeUpHandled = true;
+
+        // Останавливаем тиканье при проигрыше
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.StopTickingSound();
+        }
 
         Debug.LogWarning("[LevelTimer] ВРЕМЯ ВЫШЛО!");
 

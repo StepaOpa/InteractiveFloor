@@ -10,6 +10,10 @@ public class DigSpot : MonoBehaviour
     {
         currentTaps++;
         
+        // --- СТРОКА НИЖЕ БЫЛА УДАЛЕНА ---
+        // SoundManager.Instance.PlayDigSound(); 
+        // -----------------------------------
+        
         if (currentTaps >= tapsToReveal)
         {
             RevealItem();
@@ -20,9 +24,14 @@ public class DigSpot : MonoBehaviour
     {
         if (hiddenItemPrefab != null)
         {
-            // --- ВОТ ИСПРАВЛЕНИЕ ---
             // Четвертый аргумент (transform.parent) указывает, кто будет родителем для нового объекта.
             Instantiate(hiddenItemPrefab, transform.position, Quaternion.identity, transform.parent);
+
+            // Звук появления предмета оставляем здесь, он должен играть именно в этот момент
+            if (SoundManager.Instance != null)
+            {
+                SoundManager.Instance.PlayItemRevealSound();
+            }
         }
         
         Destroy(gameObject);
