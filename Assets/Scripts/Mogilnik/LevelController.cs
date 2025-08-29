@@ -14,9 +14,10 @@ public class LevelController : MonoBehaviour
 
     private List<GameObject> activeLevels = new List<GameObject>();
     private int currentLevelIndex = 0;
-
-    private bool diggingPhaseComplete = false;
+    
+    // Флаг levelIsComplete нам все еще нужен, чтобы не запускать логику завершения много раз
     private bool levelIsComplete = false; 
+    // А вот флаг diggingPhaseComplete больше не нужен!
 
     void Start()
     {
@@ -25,7 +26,6 @@ public class LevelController : MonoBehaviour
 
     void InitializeLevel()
     {
-        diggingPhaseComplete = false;
         levelIsComplete = false;
         
         if (UIController.Instance != null)
@@ -49,19 +49,12 @@ public class LevelController : MonoBehaviour
             LevelPlane levelPlane = level.GetComponent<LevelPlane>();
             if (levelPlane != null)
             {
-                // --- ВОТ ИСПРАВЛЕННАЯ ЛОГИКА ---
-                // 1. СНАЧАЛА генерируем предметы. Внутри этого метода происходит их подсчет.
                 levelPlane.GenerateItems();
-                
-                // 2. ПОТОМ получаем уже готовый результат подсчета.
                 int valuableItems = levelPlane.GetTotalItemsCount();
-                
-                // 3. И ТОЛЬКО ТЕПЕРЬ отправляем правильное число в UI.
                 if (UIController.Instance != null)
                 {
                     UIController.Instance.SetTotalItemsCount(valuableItems);
                 }
-                // ------------------------------------
             }
         }
         
@@ -84,42 +77,45 @@ public class LevelController : MonoBehaviour
         }
     }
 
+    // --- ПОЛНОСТЬЮ ПЕРЕПИСАННЫЙ МЕТОД ---
     private void CheckLevelCompletion()
     {
         if (activeLevels.Count <= 0 || currentLevelIndex >= activeLevels.Count) return;
-
         GameObject currentLevelObject = activeLevels[currentLevelIndex];
         if (currentLevelObject == null) return;
-        
-        if (!diggingPhaseComplete)
+
+        // ШАГ 1: Проверяем предметы, которые уже выкопаны и лежат на земле.
+        CollectableItem[] activeItems = currentLevelObject.GetComponentsInChildren<CollectableItem>();
+        foreach (CollectableItem item in activeItems)
         {
-            if (currentLevelObject.GetComponentInChildren<DigSpot>() == null)
+            // Если находим хотя бы один ценный предмет, значит, играть еще нужно.
+            if (item.itemValue > 0)
             {
-                diggingPhaseComplete = true;
-                Debug.Log("Фаза раскопок завершена! Теперь соберите все ценные предметы.");
+                return; // Выходим из проверки, уровень не пройден.
             }
         }
-        else 
+
+        // ШАГ 2: Если мы дошли сюда, значит, среди выкопанных предметов ценных нет.
+        // Теперь нужно проверить, не остались ли ценные предметы под землей.
+        DigSpot[] remainingDigSpots = currentLevelObject.GetComponentsInChildren<DigSpot>();
+        foreach (DigSpot spot in remainingDigSpots)
         {
-            CollectableItem[] remainingItems = currentLevelObject.GetComponentsInChildren<CollectableItem>();
-            
-            bool valuableItemsRemain = false;
-            foreach (CollectableItem item in remainingItems)
+            if (spot.hiddenItemPrefab != null)
             {
-                if (item.itemValue > 0)
+                CollectableItem hiddenItemInfo = spot.hiddenItemPrefab.GetComponent<CollectableItem>();
+                // Если находим хотя бы один закопанный ценный предмет...
+                if (hiddenItemInfo != null && hiddenItemInfo.itemValue > 0)
                 {
-                    valuableItemsRemain = true;
-                    break;
+                    return; // ...то уровень тоже еще не пройден.
                 }
             }
-
-            if (!valuableItemsRemain)
-            {
-                levelIsComplete = true;
-                Debug.Log("Все ценные предметы собраны! Уровень пройден.");
-                CompleteCurrentLevel();
-            }
         }
+
+        // ШАГ 3: Если код дошел до этой точки, это значит, что мы не нашли
+        // ценных предметов ни на земле, ни под землей. Уровень пройден!
+        levelIsComplete = true;
+        Debug.Log("Все ценные предметы собраны! Уровень пройден, игнорируем закопанный мусор.");
+        CompleteCurrentLevel();
     }
     
     private void CompleteCurrentLevel()
@@ -134,7 +130,8 @@ public class LevelController : MonoBehaviour
             levelTimer.StopTimer();
         }
         
-        DestroyRemainingTrash();
+        // Теперь этот метод уничтожит и выкопанный мусор, и закопанный
+        ClearRemainingLevelObjects();
 
         if (currentLevelIndex < activeLevels.Count && activeLevels[currentLevelIndex] != null)
         {
@@ -145,16 +142,25 @@ public class LevelController : MonoBehaviour
         MoveToNextLevel();
     }
     
-    private void DestroyRemainingTrash()
+    // --- УЛУЧШЕННЫЙ МЕТОД ОЧИСТКИ ---
+    private void ClearRemainingLevelObjects()
     {
         if (activeLevels.Count <= 0 || currentLevelIndex >= activeLevels.Count) return;
         GameObject currentLevelObject = activeLevels[currentLevelIndex];
         if (currentLevelObject == null) return;
 
+        // Уничтожаем оставшийся выкопанный мусор
         CollectableItem[] remainingItems = currentLevelObject.GetComponentsInChildren<CollectableItem>();
         foreach (CollectableItem item in remainingItems)
         {
             Destroy(item.gameObject);
+        }
+        
+        // Уничтожаем оставшиеся точки копания (в которых спрятан мусор)
+        DigSpot[] remainingSpots = currentLevelObject.GetComponentsInChildren<DigSpot>();
+        foreach (DigSpot spot in remainingSpots)
+        {
+            Destroy(spot.gameObject);
         }
     }
 

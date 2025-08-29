@@ -14,6 +14,16 @@ public class DigAreaClickHandler : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+            // --- НОВАЯ ПРОВЕРКА ---
+            // Спрашиваем у UI, не активен ли сейчас режим осмотра.
+            // Если да, то ничего не делаем и сразу выходим из метода.
+            if (InspectionUI.Instance != null && InspectionUI.Instance.IsInspectionUIActive())
+            {
+                return;
+            }
+            // --------------------
+
+            // Эта проверка остается, она нужна, чтобы не копать при клике на кнопки инвентаря.
             if (EventSystem.current.IsPointerOverGameObject())
             {
                 return;
@@ -24,18 +34,13 @@ public class DigAreaClickHandler : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit))
             {
-                // --- ГЛАВНОЕ ИЗМЕНЕНИЕ ---
-                // Теперь мы проверяем не сам объект, а его тег.
-                // Если у объекта, в который мы попали, есть тег "Diggable"...
                 if (hit.collider.CompareTag("Diggable"))
                 {
-                    // ...то проигрываем звук копания.
                     if (SoundManager.Instance != null)
                     {
                         SoundManager.Instance.PlayDigSound();
                     }
                 }
-                // -------------------------
             }
         }
     }
