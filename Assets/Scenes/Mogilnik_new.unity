@@ -570,7 +570,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 378, y: -183}
+  m_AnchoredPosition: {x: 376.00003, y: -257}
   m_SizeDelta: {x: 609.7874, y: 318.7091}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &201987149
@@ -1581,7 +1581,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -377, y: -183}
+  m_AnchoredPosition: {x: -379, y: -257}
   m_SizeDelta: {x: 609.7874, y: 318.7091}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &764889485
@@ -1814,6 +1814,7 @@ GameObject:
   - component: {fileID: 790953874}
   - component: {fileID: 790953873}
   - component: {fileID: 790953872}
+  - component: {fileID: 790953875}
   m_Layer: 5
   m_Name: EndGamePanel
   m_TagString: Untagged
@@ -1837,6 +1838,7 @@ RectTransform:
   - {fileID: 201987148}
   - {fileID: 1753666947}
   - {fileID: 982037442}
+  - {fileID: 1244863715}
   m_Father: {fileID: 1351642969}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1859,7 +1861,8 @@ MonoBehaviour:
   titleText: {fileID: 1753666948}
   detailsText: {fileID: 982037443}
   restartButton: {fileID: 764889485}
-  mainMenuButton: {fileID: 201987149}
+  menuButton: {fileID: 201987149}
+  coinRewardController: {fileID: 790953875}
 --- !u!114 &790953873
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1898,6 +1901,24 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 790953870}
   m_CullTransparentMesh: 1
+--- !u!114 &790953875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 790953870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3296b031d8b7767b4b916c88dc7da7e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  coinPrefab: {fileID: 1169600287494473785, guid: 3a1c9d914ae2b2108a89e6546be9cd2a, type: 3}
+  coinContainer: {fileID: 1244863715}
+  coinSpacing: 0.6
+  startPositionOffset: {x: 0, y: 5, z: 0}
+  delayBetweenDrops: 0.2
+  delayBetweenSpins: 0.1
 --- !u!1 &808833241
 GameObject:
   m_ObjectHideFlags: 0
@@ -2491,7 +2512,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.00022111, y: 27}
+  m_AnchoredPosition: {x: 0.00022111, y: -50}
   m_SizeDelta: {x: 800.7131, y: 129.0285}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &982037443
@@ -2834,6 +2855,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1244863714
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1244863715}
+  m_Layer: 5
+  m_Name: CoinContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1244863715
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1244863714}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 790953871}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0.00021362, y: 136}
+  m_SizeDelta: {x: 1470.1724, y: 138.4817}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1331970199
 GameObject:
   m_ObjectHideFlags: 0
@@ -3024,8 +3080,8 @@ Canvas:
   m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 0
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
+  m_Camera: {fileID: 961739752}
+  m_PlaneDistance: 10
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
@@ -3700,7 +3756,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.00011055, y: 240}
+  m_AnchoredPosition: {x: 0.0002211, y: 280}
   m_SizeDelta: {x: 731.4338, y: 208.8087}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1753666948
@@ -4405,7 +4461,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   levelPlanePrefabs:
-  - {fileID: 656613501641563271, guid: 7f07629cd0a75cc4085aeb8f2a5e3a2a, type: 3}
   - {fileID: 656613501641563271, guid: 7f07629cd0a75cc4085aeb8f2a5e3a2a, type: 3}
   - {fileID: 656613501641563271, guid: 7f07629cd0a75cc4085aeb8f2a5e3a2a, type: 3}
   levelHeight: -0.3
