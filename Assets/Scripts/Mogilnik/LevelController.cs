@@ -180,7 +180,13 @@ public class LevelController : MonoBehaviour
             InitializeLevel();
         }
     }
-    
+
+
+    public int GetTotalLevelCount()
+    {
+        return levelPlanePrefabs.Count;
+    }
+
     private void OnAllLevelsCompleted()
     {
         GameManager.Instance.ShowWinScreen(

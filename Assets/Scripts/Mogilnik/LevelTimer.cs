@@ -65,18 +65,18 @@ public class LevelTimer : MonoBehaviour
         timeRemaining = levelTime;
         isTimerRunning = true;
         timeUpHandled = false;
-        isTickingSoundStarted = false; // Сбрасываем флаг при старте
+        isTickingSoundStarted = false;
         Debug.Log("[LevelTimer] Таймер запущен!");
     }
 
     public void StopTimer()
     {
         isTimerRunning = false;
-        
+
         if (isTickingSoundStarted && SoundManager.Instance != null)
         {
             SoundManager.Instance.StopTickingSound();
-            isTickingSoundStarted = false; // Сбрасываем флаг
+            isTickingSoundStarted = false;
         }
 
         Debug.Log("[LevelTimer] Таймер остановлен.");
@@ -89,7 +89,6 @@ public class LevelTimer : MonoBehaviour
 
         Debug.LogWarning("[LevelTimer] ВРЕМЯ ВЫШЛО!");
 
-        // GameManager теперь сам остановит звук, но для надежности можно оставить
         if (isTickingSoundStarted && SoundManager.Instance != null)
         {
             SoundManager.Instance.StopTickingSound();
@@ -101,21 +100,16 @@ public class LevelTimer : MonoBehaviour
             InspectionUI.Instance.ForceHide();
         }
 
-        if (GameManager.Instance != null) // Добавим проверку на всякий случай
+        if (GameManager.Instance != null)
         {
-            GameManager.Instance.ShowLoseScreen(
-                UIController.Instance.GetCurrentScore(),
-                UIController.Instance.GetCurrentLevel()
-            );
+            // --- ВОТ ГЛАВНОЕ ИСПРАВЛЕНИЕ ---
+            // Вызываем метод без аргументов. GameManager сам соберет все данные.
+            GameManager.Instance.ShowLoseScreen();
         }
     }
 
-    // --- ДОБАВЛЕНО ДЛЯ НАДЕЖНОСТИ ---
-    // Этот метод автоматически вызывается Unity перед уничтожением объекта
-    // (например, при перезагрузке сцены). Это наша главная страховка.
     private void OnDestroy()
     {
-        // Если звук тикал, и мы покидаем сцену, его нужно принудительно остановить.
         if (isTickingSoundStarted && SoundManager.Instance != null)
         {
             SoundManager.Instance.StopTickingSound();
