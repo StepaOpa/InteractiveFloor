@@ -9,11 +9,11 @@ public class UIController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI currentLevelText;
     [SerializeField] private TextMeshProUGUI inventoryCountText;
-    [SerializeField] private Transform inventoryGridParent; 
+    [SerializeField] private Transform inventoryGridParent;
 
     [Header("Префабы для инвентаря")]
-    [SerializeField] private GameObject inventoryItemPrefab; 
-    [SerializeField] private GameObject itemBackgroundPrefab; 
+    [SerializeField] private GameObject inventoryItemPrefab;
+    [SerializeField] private GameObject itemBackgroundPrefab;
 
     [Header("Настройки")]
     [SerializeField] private string scorePrefix = "Очки: ";
@@ -23,9 +23,9 @@ public class UIController : MonoBehaviour
     private int currentScore = 0;
     private int currentLevel = 1;
     private List<InventoryItem> inventoryItems = new List<InventoryItem>();
-    
-    private int totalValuableItems = 0; // Общее кол-во ЦЕННЫХ предметов на уровне
-    private int collectedOnLevel = 0; // Собрано ЦЕННЫХ предметов на уровне
+
+    private int totalValuableItems = 0;
+    private int collectedOnLevel = 0;
 
     public static UIController Instance { get; private set; }
 
@@ -81,25 +81,33 @@ public class UIController : MonoBehaviour
         UpdateLevelUI();
         UpdateInventoryCountUI();
     }
-    
+
     public void SetTotalItemsCount(int totalCount)
     {
         totalValuableItems = totalCount;
-        UpdateInventoryCountUI(); 
+        UpdateInventoryCountUI();
         Debug.Log($"[UIController] Установлено общее количество ценных предметов: {totalCount}");
     }
 
+    // --- ВОТ ГЛАВНОЕ ИЗМЕНЕНИЕ ---
     public void ResetForNewLevel()
     {
+        // Весь код ниже закомментирован, чтобы инвентарь НЕ сбрасывался при переходе на новый уровень.
+        // Теперь этот метод можно безопасно вызывать, и он ничего не сделает.
+
+        /*
         foreach (Transform child in inventoryGridParent)
         {
             Destroy(child.gameObject);
         }
         inventoryItems.Clear();
-        collectedOnLevel = 0;
+        collectedOnLevel = 0; // Эту переменную тоже можно оставить, если счетчик "собрано/всего" должен быть уникальным для каждого уровня
         Debug.Log("[UIController] Инвентарь и счетчики сброшены для нового уровня.");
         UpdateInventoryCountUI();
+        */
+        Debug.Log("[UIController] Попытка сброса инвентаря проигнорирована для сохранения предметов между уровнями.");
     }
+
 
     public void AddScore(int points)
     {
@@ -139,14 +147,10 @@ public class UIController : MonoBehaviour
     public int GetCurrentScore() { return currentScore; }
     public int GetCurrentLevel() { return currentLevel; }
 
-    // --- ВОТ ИЗМЕНЕННЫЙ МЕТОД ---
     public void AddItemToInventory(string name, Sprite icon, int value)
     {
-        // Шаг 1: Очки начисляются или списываются для ЛЮБОГО предмета.
         AddScore(value);
 
-        // Шаг 2: Создаем визуальное представление (иконку) в инвентаре для ЛЮБОГО предмета.
-        // Этот блок кода теперь находится вне всяких условий.
         InventoryItem newItem = new InventoryItem(name, icon, value);
 
         GameObject backgroundUI = null;
@@ -163,16 +167,14 @@ public class UIController : MonoBehaviour
         {
             itemUIComponent.SetSprite(icon);
         }
-        
-        inventoryItems.Add(newItem); // Добавляем в логический список, чтобы можно было его очистить при сбросе уровня
 
-        // Шаг 3: А вот счетчик "собрано / всего" мы увеличиваем ТОЛЬКО для ценных предметов.
+        inventoryItems.Add(newItem);
+
         if (value > 0)
         {
             collectedOnLevel++;
         }
-        
-        // Шаг 4: Обновляем текст счетчика. Он покажет правильное количество собранных ЦЕННОСТЕЙ.
+
         UpdateInventoryCountUI();
     }
 }

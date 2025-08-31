@@ -132,7 +132,7 @@ MonoBehaviour:
   - {fileID: 5107546137790270368, guid: b286f375081d4234483c14eced1066b7, type: 3}
   - {fileID: 585340726003276542, guid: 22048e31393221b418e3fb0900c8327b, type: 3}
   - {fileID: 2379802138214940463, guid: 6871a875e8efcd043b3fe2eb8f96db77, type: 3}
-  digSpotsCount: 1
+  digSpotsCount: 2
   minDistanceBetweenSpots: 1
   heightOffset: 0.2
   minX: -1.8
