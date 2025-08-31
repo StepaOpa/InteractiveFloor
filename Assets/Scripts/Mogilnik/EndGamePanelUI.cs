@@ -1,4 +1,3 @@
-// Скорее всего, у тебя уже есть эти using'и
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro; // Если ты используешь TextMeshPro для текста
@@ -11,13 +10,10 @@ public class EndGamePanelUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI detailsText; // Поле для "Набрано очков..."
     public Button restartButton;
     [SerializeField] private Button menuButton;
-    
+
     // <-- НОВОЕ 1/3: Добавляем ссылку на наш контроллер монет -->
     [Header("Система наград")]
     [SerializeField] private CoinRewardController coinRewardController;
-
-
-
 
     // <-- НОВОЕ 2/3: Добавляем этот метод, чтобы очищать монетки при перезапуске -->
     void OnDisable()
@@ -39,7 +35,8 @@ public class EndGamePanelUI : MonoBehaviour
         // <-- НОВОЕ 3/3: ЗАПУСКАЕМ АНИМАЦИЮ МОНЕТОК! -->
         if (coinRewardController != null)
         {
-            coinRewardController.StartRewardSequence();
+            // ИЗМЕНЕНО: Передаем сюда finalScore
+            coinRewardController.StartRewardSequence(finalScore);
         }
     }
 

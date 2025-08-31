@@ -19,10 +19,11 @@ public class CoinRewardController : MonoBehaviour
     private List<GameObject> spawnedCoins = new List<GameObject>();
 
     // Главный публичный метод, который мы будем вызывать извне (например, из EndGamePanelUI)
-    public void StartRewardSequence()
+    // ИЗМЕНЕНО: Теперь метод принимает количество монет (очков) как аргумент
+    public void StartRewardSequence(int numberOfCoins)
     {
-        // Возвращаем случайное количество от 1 до 10
-        int numberOfCoins = Random.Range(1, 11); 
+        // УБРАНО: Возвращаем случайное количество от 1 до 10
+        // int numberOfCoins = Random.Range(1, 11); 
 
         // Запускаем всю последовательность
         StartCoroutine(RewardSequenceCoroutine(numberOfCoins));
@@ -44,7 +45,7 @@ public class CoinRewardController : MonoBehaviour
         {
             // Вычисляем финальную позицию для текущей монетки
             Vector3 targetPosition = coinContainer.position + startOffset + new Vector3(i * coinSpacing, 0, 0);
-            
+
             // Начальная позиция будет высоко над финальной
             Vector3 startPosition = targetPosition + startPositionOffset;
 
