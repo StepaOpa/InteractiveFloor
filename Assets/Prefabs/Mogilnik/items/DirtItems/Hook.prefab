@@ -134,15 +134,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: c51b9af3280cc4f468f654b4b5dc0a97, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1000
+      value: 600
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c51b9af3280cc4f468f654b4b5dc0a97, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1000
+      value: 600
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c51b9af3280cc4f468f654b4b5dc0a97, type: 3}
       propertyPath: m_LocalScale.z
-      value: 1000
+      value: 600
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: c51b9af3280cc4f468f654b4b5dc0a97, type: 3}
       propertyPath: m_LocalPosition.x
@@ -236,7 +236,7 @@ MonoBehaviour:
   flyToPlayerSpeed: 5
   rotationSpeed: 100
   inspectionDistance: 1
-  inspectionScaleModifier: 2
+  inspectionScaleModifier: 2.4
   inspectionOffset: {x: 0, y: 0, z: 0}
   buttonRotationSpeed: 180
   buttonRotationStep: 45
