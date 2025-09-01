@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro; // Не забываем эту строчку для работы с UI текстом
 
 public class IcebreakerController : MonoBehaviour
 {
@@ -13,49 +14,48 @@ public class IcebreakerController : MonoBehaviour
     [SerializeField] private float minX = -8f;
     [SerializeField] private float maxX = 8f;
 
-    [SerializeField] private int health = 3;
+    [Header("Stats & UI")]
+    [SerializeField] private int health = 5;
+    [SerializeField] private TextMeshProUGUI healthText;
+    [SerializeField] private TextMeshProUGUI distanceText;
+
+    private int maxHealth;
+    private float distanceTraveled = 0f;
+
     private bool isMoving = false;
     private Quaternion originRotation;
     private float uiInput = 0f;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         originRotation = transform.rotation;
+
+        maxHealth = health;
+        UpdateHealthUI();
+        UpdateDistanceUI();
     }
 
-    // Update is called once per frame
     void Update()
     {
         Movement();
+
+        if (distanceTraveled < 100f)
+        {
+            distanceTraveled += Time.deltaTime;
+            UpdateDistanceUI();
+        }
     }
-
-
-
 
     void Movement()
     {
-        // Объединяем ввод от клавиатуры и UI кнопок
         float keyboardInput = Input.GetAxis("Horizontal");
         float horizontalInput = Mathf.Clamp(keyboardInput + uiInput, -1f, 1f);
 
-
-        // ========== НАЧАЛО ИЗМЕНЕНИЙ ==========
-
-        // 1. Рассчитываем новую позицию, как будто нет ограничений
         Vector3 newPosition = transform.position + Vector3.right * horizontalInput * moveSpeed * Time.deltaTime;
-
-        // 2. Ограничиваем (clamping) координату X в заданных пределах
         newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
-
-        // 3. Применяем уже ограниченную позицию
         transform.position = newPosition;
 
-        // ========== КОНЕЦ ИЗМЕНЕНИЙ ==========
-
-
         Tilt(horizontalInput);
-        // SmallRotation(horizontalInput);
     }
 
     void Tilt(float horizontalInput)
@@ -93,10 +93,6 @@ public class IcebreakerController : MonoBehaviour
         uiInput = 0f;
     }
 
-    /// <summary>
-    /// Установить конкретное значение движения (для слайдеров или джойстика)
-    /// </summary>
-    /// <param name="input">Значение от -1 до 1</param>
     public void SetMovementInput(float input)
     {
         uiInput = Mathf.Clamp(input, -1f, 1f);
@@ -105,10 +101,33 @@ public class IcebreakerController : MonoBehaviour
     public void TakeDamage(int damage)
     {
         health -= damage;
+        if (health < 0) health = 0;
+
         Debug.Log("Icebreaker health: " + health);
+        UpdateHealthUI();
+
         if (health <= 0)
         {
             Die();
+        }
+    }
+
+    // ========== Обновление UI ==========
+
+    void UpdateHealthUI()
+    {
+        if (healthText != null)
+        {
+            // ЗАМЕНИТЕ "Прочность корпуса" НА ВАШ ВЫБОР
+            healthText.text = "Прочность корпуса: " + health + " / " + maxHealth;
+        }
+    }
+
+    void UpdateDistanceUI()
+    {
+        if (distanceText != null)
+        {
+            distanceText.text = "Расстояние: " + Mathf.FloorToInt(distanceTraveled) + " м";
         }
     }
 
@@ -116,5 +135,4 @@ public class IcebreakerController : MonoBehaviour
     {
         Debug.Log("Icebreaker is dead");
     }
-
 }
