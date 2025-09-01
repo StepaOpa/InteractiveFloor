@@ -689,13 +689,13 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 230969698}
-  m_LocalRotation: {x: -0.1500921, y: -0, z: -0, w: 0.9886721}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 3}
   m_LocalScale: {x: 4, y: 4, z: 4}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -17.265, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -0.002, y: 5}
@@ -1698,7 +1698,7 @@ MonoBehaviour:
   coinPrefab: {fileID: 3770400561182047547, guid: 08af65d1e294bc36d87640f9b2877293, type: 3}
   coinContainer: {fileID: 230969699}
   coinSpacing: 5
-  startPositionOffset: {x: 0, y: 5, z: 0}
+  startPositionOffset: {x: 0, y: 10, z: 3}
   delayBetweenDrops: 0.2
   delayBetweenSpins: 0.1
 --- !u!1 &1625329097
