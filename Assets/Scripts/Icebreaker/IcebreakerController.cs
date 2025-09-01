@@ -39,7 +39,21 @@ public class IcebreakerController : MonoBehaviour
         float keyboardInput = Input.GetAxis("Horizontal");
         float horizontalInput = Mathf.Clamp(keyboardInput + uiInput, -1f, 1f);
 
-        transform.Translate(Vector3.right * horizontalInput * moveSpeed * Time.deltaTime, Space.World);
+
+        // ========== НАЧАЛО ИЗМЕНЕНИЙ ==========
+
+        // 1. Рассчитываем новую позицию, как будто нет ограничений
+        Vector3 newPosition = transform.position + Vector3.right * horizontalInput * moveSpeed * Time.deltaTime;
+
+        // 2. Ограничиваем (clamping) координату X в заданных пределах
+        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
+
+        // 3. Применяем уже ограниченную позицию
+        transform.position = newPosition;
+
+        // ========== КОНЕЦ ИЗМЕНЕНИЙ ==========
+
+
         Tilt(horizontalInput);
         // SmallRotation(horizontalInput);
     }
