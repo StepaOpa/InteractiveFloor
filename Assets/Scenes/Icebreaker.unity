@@ -2723,12 +2723,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chunkPrefab: {fileID: 7747072358013670374, guid: 8c589189cd40412449df2330811e95ba, type: 3}
   crackedChunkPrefab: {fileID: 979770359520965162, guid: 542f895045861ed4e8a18127c200bdaa, type: 3}
-  obstaclePrefabs: []
   groundWidth: 4
+  chunkLength: 40
+  wallPrefab: {fileID: 6924291571474852997, guid: 87d0cbf0f9e05ec40994b3d9738b2c6f, type: 3}
+  leftWallXPosition: -50
+  rightWallXPosition: 50
   chunkSpawnPoint: {fileID: 1919606934}
   chunkSpeed: 7
   replaceChunkPoint: {fileID: 1361539442}
-  chunkLength: 40
 --- !u!4 &1992375984
 Transform:
   m_ObjectHideFlags: 0

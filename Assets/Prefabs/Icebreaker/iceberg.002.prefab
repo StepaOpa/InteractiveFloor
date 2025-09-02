@@ -154,9 +154,9 @@ MonoBehaviour:
   wholeModel: {fileID: 4849371872089746202}
   half_A: {fileID: 1249785618294125846}
   half_B: {fileID: 4938589242697069112}
-  separationForce: 3
-  sinkDelay: 1.5
-  sinkSpeed: 0.1
+  separationForce: 8
+  sinkDelay: 0.2
+  sinkSpeed: 0.7
 --- !u!1001 &1323352057697262357
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -222,6 +222,10 @@ PrefabInstance:
       value: IcebergHalf_B
       objectReference: {fileID: 0}
     - target: {fileID: 6256653747952675117, guid: 933c6a3a474b55247ab348a85c39db55, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6256653747952675117, guid: 933c6a3a474b55247ab348a85c39db55, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
@@ -266,6 +270,10 @@ PrefabInstance:
     - target: {fileID: 3995106002631497145, guid: f4b8aa421b0868e4db3a579264e5605c, type: 3}
       propertyPath: m_Name
       value: IcebergHalf_A
+      objectReference: {fileID: 0}
+    - target: {fileID: 3995106002631497145, guid: f4b8aa421b0868e4db3a579264e5605c, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3995106002631497145, guid: f4b8aa421b0868e4db3a579264e5605c, type: 3}
       propertyPath: m_IsActive
