@@ -1562,7 +1562,7 @@ GameObject:
   - component: {fileID: 1208144967}
   - component: {fileID: 1208144966}
   m_Layer: 0
-  m_Name: _GameManagerPetroglyths
+  m_Name: GameManagerPetroglyphs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

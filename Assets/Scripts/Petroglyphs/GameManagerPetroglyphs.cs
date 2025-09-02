@@ -3,7 +3,7 @@ using UnityEngine.UI; // Обязательно добавь эту строку для работы с UI
 using System.Collections.Generic; // Для работы со списками
 
 
-public class GameManagerPetroglyths : MonoBehaviour // <-- Имя класса изменено
+public class GameManagerPetroglyphs : MonoBehaviour // <-- Имя класса изменено
 {
     [Header("UI Elements")]
     [SerializeField] private Image petroglyphToFindImage; // Сюда перетащим нашу иконку
