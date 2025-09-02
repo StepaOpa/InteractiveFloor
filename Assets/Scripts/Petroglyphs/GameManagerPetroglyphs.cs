@@ -1,59 +1,53 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections; // <--- ВОТ ЭТА СТРОКА РЕШАЕТ ПРОБЛЕМУ
 using System.Collections.Generic;
-using TMPro; // Важно! Добавь эту строку для работы с TextMeshPro
+using TMPro;
 
 
 public class GameManagerPetroglyphs : MonoBehaviour
 {
     [Header("UI Elements")]
     [SerializeField] private Image petroglyphToFindImage;
-    [SerializeField] private Image timerImage; // Радиальный прогресс-бар
-    [SerializeField] private TextMeshProUGUI timerText; // Текстовый таймер (цифры)
-    [SerializeField] private GameEndPanelPetroglyphs endPanel; // Ссылка на скрипт нашей новой панели
+    [SerializeField] private Image timerImage;
+    [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private GameEndPanelPetroglyphs endPanel;
 
     [Header("Game Settings")]
     [SerializeField] private List<Sprite> allPetroglyphSprites;
     [SerializeField] private float timePerPetroglyph = 15f;
+    [SerializeField] private int coinsOnWin = 10;
+
+    [Header("Scene References")]
+    [SerializeField] private CameraController cameraController;
 
     private List<Sprite> availablePetroglyphs;
     private Sprite currentPetroglyph;
     private float currentTime;
     private bool isGameActive = true;
-
-    // --- Новые переменные для статистики ---
     private int foundPetroglyphsCount = 0;
     private int totalPetroglyphsCount = 0;
 
     void Start()
     {
-        // Скрываем панель окончания игры в самом начале
         endPanel.gameObject.SetActive(false);
-
         availablePetroglyphs = new List<Sprite>(allPetroglyphSprites);
-        totalPetroglyphsCount = allPetroglyphSprites.Count; // Запоминаем, сколько всего было рисунков
-        foundPetroglyphsCount = 0; // Сбрасываем счетчик найденных
-
+        totalPetroglyphsCount = allPetroglyphSprites.Count;
+        foundPetroglyphsCount = 0;
         SelectNextPetroglyph();
     }
 
     void Update()
     {
         if (!isGameActive) return;
-
         currentTime -= Time.deltaTime;
-
-        // --- Обновление UI таймера (ИЗМЕНЕНО) ---
-        // Обновляем радиальный прогресс-бар
         timerImage.fillAmount = currentTime / timePerPetroglyph;
-        // Обновляем текст. Mathf.CeilToInt округляет до ближайшего большего целого (14.1 -> 15)
         timerText.text = Mathf.CeilToInt(currentTime).ToString();
 
         if (currentTime <= 0)
         {
-            // Исправляем, чтобы таймер не показывал отрицательные числа
             timerText.text = "0";
-            LoseGame();
+            StartCoroutine(LoseGame());
         }
     }
 
@@ -66,27 +60,20 @@ public class GameManagerPetroglyphs : MonoBehaviour
             currentPetroglyph = availablePetroglyphs[randomIndex];
             petroglyphToFindImage.sprite = currentPetroglyph;
             availablePetroglyphs.RemoveAt(randomIndex);
-            Debug.Log("Нужно найти: " + currentPetroglyph.name);
         }
         else
         {
-            WinGame();
+            StartCoroutine(WinGame());
         }
     }
 
     public void CheckFoundPetroglyph(PetroglyphLocation foundLocation)
     {
         if (!isGameActive) return;
-
         if (foundLocation.petroglyphSprite == currentPetroglyph)
         {
-            Debug.Log("ПРАВИЛЬНО! Найден петroglyph: " + currentPetroglyph.name);
-            foundPetroglyphsCount++; // Увеличиваем счетчик найденных
+            foundPetroglyphsCount++;
             SelectNextPetroglyph();
-        }
-        else
-        {
-            Debug.Log("Неверно. Это другой рисунок.");
         }
     }
 
@@ -95,20 +82,21 @@ public class GameManagerPetroglyphs : MonoBehaviour
         currentTime = timePerPetroglyph;
     }
 
-    // --- Логика концовок (ИЗМЕНЕНО) ---
-    private void WinGame()
+    private IEnumerator WinGame()
     {
         isGameActive = false;
-        Debug.Log("Поздравляю! Вы нашли все петроглифы!");
-        // Вызываем метод на панели, передаем ему, что это победа, и статистику
-        endPanel.ShowPanel(true, foundPetroglyphsCount, totalPetroglyphsCount);
+
+        yield return cameraController.MoveCameraToDefaultPosition();
+
+        endPanel.ShowPanel(true, foundPetroglyphsCount, totalPetroglyphsCount, coinsOnWin);
     }
 
-    private void LoseGame()
+    private IEnumerator LoseGame()
     {
         isGameActive = false;
-        Debug.Log("Время вышло! Вы проиграли.");
-        // Вызываем метод на панели, передаем ему, что это поражение, и статистику
-        endPanel.ShowPanel(false, foundPetroglyphsCount, totalPetroglyphsCount);
+
+        yield return cameraController.MoveCameraToDefaultPosition();
+
+        endPanel.ShowPanel(false, foundPetroglyphsCount, totalPetroglyphsCount, 0);
     }
 }

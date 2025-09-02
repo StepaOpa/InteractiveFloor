@@ -5,9 +5,6 @@ public class CameraController : MonoBehaviour
 {
     [SerializeField] private Transform defaultCameraPosition;
     [SerializeField] private Transform defaultCameraLookAtPosition;
-
-    // --- НОВАЯ СТРОКА ---
-    // Сюда в инспекторе нужно будет перетащить объект с GameManagerPetroglyphs
     [SerializeField] private GameManagerPetroglyphs gameManager;
 
     void Start()
@@ -24,17 +21,12 @@ public class CameraController : MonoBehaviour
             if (Physics.Raycast(ray, out hit))
             {
                 Debug.Log("Нажат объект: " + hit.collider.gameObject.name);
-
-                // --- ЛОГИКА ПРОВЕРКИ ПЕТРОГЛИФА (ИЗМЕНЕНО) ---
-                // Пытаемся получить компонент PetroglyphLocation с объекта
                 PetroglyphLocation petroglyphLocation = hit.collider.GetComponent<PetroglyphLocation>();
 
-                // Если на объекте есть такой компонент, отправляем его на проверку
                 if (petroglyphLocation != null)
                 {
                     gameManager.CheckFoundPetroglyph(petroglyphLocation);
                 }
-                // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
                 InteractionPoint interactionPoint = hit.collider.gameObject.GetComponentInParent<InteractionPoint>();
                 if (interactionPoint != null)
@@ -46,7 +38,9 @@ public class CameraController : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            MoveCameraToDefaultPosition();
+            // --- ИЗМЕНЕНО ---
+            // Так как метод теперь корутина, его нужно запускать через StartCoroutine
+            StartCoroutine(MoveCameraToDefaultPosition());
         }
     }
 
@@ -85,11 +79,14 @@ public class CameraController : MonoBehaviour
         transform.rotation = targetRotation;
     }
 
-    private void MoveCameraToDefaultPosition()
+    // --- МЕТОД ИЗМЕНЕН ---
+    // Сделали его публичным и возвращающим IEnumerator
+    public IEnumerator MoveCameraToDefaultPosition()
     {
         Vector3 targetPosition = defaultCameraPosition.position;
         Vector3 targetLookAtPosition = defaultCameraLookAtPosition.position;
 
-        StartCoroutine(MoveCameraToPointCoroutine(targetPosition, targetLookAtPosition, 10f));
+        // Просто возвращаем корутину, чтобы другой скрипт мог ее дождаться
+        yield return MoveCameraToPointCoroutine(targetPosition, targetLookAtPosition, 10f);
     }
 }

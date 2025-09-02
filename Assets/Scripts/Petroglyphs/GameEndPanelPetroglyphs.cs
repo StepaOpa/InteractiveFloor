@@ -1,42 +1,46 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro; // Важно! Нужно для работы с TextMeshPro
-using UnityEngine.SceneManagement; // Нужно для перезагрузки сцены
-
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameEndPanelPetroglyphs : MonoBehaviour
 {
     [Header("UI Компоненты")]
-    [SerializeField] private TextMeshProUGUI titleText; // Текст заголовка (Победа/Поражение)
-    [SerializeField] private TextMeshProUGUI detailsText; // Детальный текст (статистика)
-    [SerializeField] private Button restartButton; // Кнопка "Начать заново"
-    [SerializeField] private Button mainMenuButton; // Кнопка "Главное меню"
+    [SerializeField] private TextMeshProUGUI titleText;
+    [SerializeField] private TextMeshProUGUI detailsText;
+    [SerializeField] private Button restartButton;
+    [SerializeField] private Button mainMenuButton;
+
+    // --- НОВАЯ СТРОКА ---
+    [Header("Система наград")]
+    [SerializeField] private CoinRewardController coinRewardController; // Ссылка на контроллер монеток
 
     void Start()
     {
-        // Добавляем слушателей для кнопок. Это программный способ назначить действия.
         restartButton.onClick.AddListener(OnRestartButtonClick);
         mainMenuButton.onClick.AddListener(OnMainMenuButtonClick);
     }
 
-    // Этот публичный метод будет вызываться из GameManager'а
-    public void ShowPanel(bool isWin, int foundCount, int totalCount)
+    // --- МЕТОД ИЗМЕНЕН ---
+    // Добавили параметр coinsAwarded для передачи количества монет
+    public void ShowPanel(bool isWin, int foundCount, int totalCount, int coinsAwarded)
     {
-        // Включаем саму панель, чтобы она стала видимой
         gameObject.SetActive(true);
 
         if (isWin)
         {
-            // Настраиваем тексты для победы
             titleText.text = "Победа!";
-            // Здесь можно будет добавить переменную для монеток, пока что просто число
-            detailsText.text = "Вы нашли все рисунки!\nЗаработано монеток: 10";
+            detailsText.text = $"Вы нашли все рисунки!\nЗаработано монеток: {coinsAwarded}";
 
-            // Сюда позже добавим логику падения монеток
+            // --- НОВАЯ СТРОКА ---
+            // Запускаем анимацию падения монеток
+            if (coinRewardController != null)
+            {
+                coinRewardController.StartRewardSequence(coinsAwarded);
+            }
         }
         else
         {
-            // Настраиваем тексты для поражения
             titleText.text = "Поражение";
             detailsText.text = $"Время вышло.\nНайдено рисунков: {foundCount} из {totalCount}";
         }
@@ -44,18 +48,14 @@ public class GameEndPanelPetroglyphs : MonoBehaviour
 
     private void OnRestartButtonClick()
     {
-        // Перезагружает текущую активную сцену
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private void OnMainMenuButtonClick()
     {
-        // Пока что просто выводим сообщение в консоль
         Debug.Log("Переход в главное меню (не реализовано)");
     }
 
-    // Этот метод вызывается автоматически, когда объект уничтожается.
-    // Хорошая практика - отписываться от событий, на которые подписались.
     private void OnDestroy()
     {
         restartButton.onClick.RemoveListener(OnRestartButtonClick);
