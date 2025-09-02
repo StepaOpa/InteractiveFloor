@@ -50,9 +50,9 @@ MonoBehaviour:
   - {fileID: 7362648908297457487, guid: 17b05dc5bf8b9874d8eb2b047d61a726, type: 3}
   - {fileID: 4849371872089746202, guid: 839c0968cf403a246840e6015031bff1, type: 3}
   - {fileID: 5059277995372962732, guid: 432927c49400c1045ac3721289db4349, type: 3}
-  obstaclesCount: 5
-  uniformScaleRange: {x: 0.8, y: 1.5}
-  borderPadding: 0.5
+  obstaclesCount: 2
+  uniformScaleRange: {x: 0.4, y: 2.3}
+  borderPadding: 0
   randomYRotation: 1
   areaCollider: {fileID: 0}
   areaRenderer: {fileID: 708706835235626835}
