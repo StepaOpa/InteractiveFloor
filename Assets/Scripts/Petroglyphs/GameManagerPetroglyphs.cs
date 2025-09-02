@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections; // <--- ВОТ ЭТА СТРОКА РЕШАЕТ ПРОБЛЕМУ
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 
@@ -8,9 +8,11 @@ using TMPro;
 public class GameManagerPetroglyphs : MonoBehaviour
 {
     [Header("UI Elements")]
+    [SerializeField] private GameObject gameUiContainer; // --- ИЗМЕНЕНО: Общий контейнер для всего игрового UI
     [SerializeField] private Image petroglyphToFindImage;
-    [SerializeField] private Image timerImage;
     [SerializeField] private TextMeshProUGUI timerText;
+    [SerializeField] private Image timerImage; // Вернул ссылку на таймер, так как она нужна в Update
+    [SerializeField] private TextMeshProUGUI foundCounterText;
     [SerializeField] private GameEndPanelPetroglyphs endPanel;
 
     [Header("Game Settings")]
@@ -31,9 +33,11 @@ public class GameManagerPetroglyphs : MonoBehaviour
     void Start()
     {
         endPanel.gameObject.SetActive(false);
+        gameUiContainer.SetActive(true); // --- НОВАЯ СТРОКА ---
         availablePetroglyphs = new List<Sprite>(allPetroglyphSprites);
         totalPetroglyphsCount = allPetroglyphSprites.Count;
         foundPetroglyphsCount = 0;
+        UpdateFoundCounterText();
         SelectNextPetroglyph();
     }
 
@@ -73,7 +77,16 @@ public class GameManagerPetroglyphs : MonoBehaviour
         if (foundLocation.petroglyphSprite == currentPetroglyph)
         {
             foundPetroglyphsCount++;
+            UpdateFoundCounterText();
             SelectNextPetroglyph();
+        }
+    }
+
+    private void UpdateFoundCounterText()
+    {
+        if (foundCounterText != null)
+        {
+            foundCounterText.text = $"Найдено рисунков: {foundPetroglyphsCount}/{totalPetroglyphsCount}";
         }
     }
 
@@ -86,8 +99,10 @@ public class GameManagerPetroglyphs : MonoBehaviour
     {
         isGameActive = false;
 
-        yield return cameraController.MoveCameraToDefaultPosition();
+        // --- ИЗМЕНЕНО: Скрываем весь игровой UI одним махом ---
+        gameUiContainer.SetActive(false);
 
+        yield return cameraController.MoveCameraToDefaultPosition();
         endPanel.ShowPanel(true, foundPetroglyphsCount, totalPetroglyphsCount, coinsOnWin);
     }
 
@@ -95,8 +110,10 @@ public class GameManagerPetroglyphs : MonoBehaviour
     {
         isGameActive = false;
 
-        yield return cameraController.MoveCameraToDefaultPosition();
+        // --- ИЗМЕНЕНО: Скрываем весь игровой UI одним махом ---
+        gameUiContainer.SetActive(false);
 
+        yield return cameraController.MoveCameraToDefaultPosition();
         endPanel.ShowPanel(false, foundPetroglyphsCount, totalPetroglyphsCount, 0);
     }
 }
