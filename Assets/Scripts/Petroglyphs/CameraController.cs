@@ -3,9 +3,12 @@ using System.Collections;
 
 public class CameraController : MonoBehaviour
 {
-
     [SerializeField] private Transform defaultCameraPosition;
     [SerializeField] private Transform defaultCameraLookAtPosition;
+
+    // --- НОВАЯ СТРОКА ---
+    // Сюда в инспекторе нужно будет перетащить объект с GameManagerPetroglyphs
+    [SerializeField] private GameManagerPetroglyphs gameManager;
 
     void Start()
     {
@@ -21,6 +24,18 @@ public class CameraController : MonoBehaviour
             if (Physics.Raycast(ray, out hit))
             {
                 Debug.Log("Нажат объект: " + hit.collider.gameObject.name);
+
+                // --- ЛОГИКА ПРОВЕРКИ ПЕТРОГЛИФА (ИЗМЕНЕНО) ---
+                // Пытаемся получить компонент PetroglyphLocation с объекта
+                PetroglyphLocation petroglyphLocation = hit.collider.GetComponent<PetroglyphLocation>();
+
+                // Если на объекте есть такой компонент, отправляем его на проверку
+                if (petroglyphLocation != null)
+                {
+                    gameManager.CheckFoundPetroglyph(petroglyphLocation);
+                }
+                // --- КОНЕЦ ИЗМЕНЕНИЙ ---
+
                 InteractionPoint interactionPoint = hit.collider.gameObject.GetComponentInParent<InteractionPoint>();
                 if (interactionPoint != null)
                 {
@@ -42,8 +57,6 @@ public class CameraController : MonoBehaviour
         float targetDistance = interactionPoint.cameraDistance;
 
         StartCoroutine(MoveCameraToPointCoroutine(targetPosition, targetLookAtPosition, targetDistance));
-
-
     }
 
     private IEnumerator MoveCameraToPointCoroutine(Vector3 targetPosition, Vector3 targetLookAtPosition, float targetDistance)
@@ -79,8 +92,4 @@ public class CameraController : MonoBehaviour
 
         StartCoroutine(MoveCameraToPointCoroutine(targetPosition, targetLookAtPosition, 10f));
     }
-
-
-
 }
-
