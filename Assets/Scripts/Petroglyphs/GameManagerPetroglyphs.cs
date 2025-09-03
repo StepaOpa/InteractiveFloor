@@ -20,6 +20,7 @@ public class GameManagerPetroglyphs : MonoBehaviour
     [SerializeField] private RectTransform targetIconTransform;
     [SerializeField] private float flyAnimationSpeed = 800f;
     [SerializeField] private float startScale = 0.1f;
+    [SerializeField] private float delayAfterFinding = 0.5f; // --- НОВАЯ СТРОКА ---
 
     [Header("Game Settings")]
     [SerializeField] private List<Sprite> allPetroglyphSprites;
@@ -30,7 +31,7 @@ public class GameManagerPetroglyphs : MonoBehaviour
     [SerializeField] private CameraController cameraController;
     [SerializeField] private Canvas mainCanvas;
 
-    private List<Sprite> availablePetroglyphs; // <--- Вот правильное имя переменной
+    private List<Sprite> availablePetroglyphs;
     private Sprite currentPetroglyph;
     private float currentTime;
     private bool isGameActive = true;
@@ -63,12 +64,51 @@ public class GameManagerPetroglyphs : MonoBehaviour
         }
     }
 
+    public void CheckFoundPetroglyph(PetroglyphLocation foundLocation)
+    {
+        if (!isGameActive || isAnimating) return;
+        if (foundLocation.petroglyphSprite == currentPetroglyph)
+        {
+            isAnimating = true; // Блокируем игру на время анимации
+
+            // Создаем объект из префаба
+            GameObject flyingIconObject = Instantiate(flyingPetroglyphPrefab, mainCanvas.transform);
+
+            // Получаем его аниматор
+            FlyingIconAnimator animator = flyingIconObject.GetComponent<FlyingIconAnimator>();
+
+            Vector3 startPosition = Camera.main.WorldToScreenPoint(foundLocation.transform.position);
+            Vector3 endPosition = targetIconTransform.position;
+
+            // Запускаем анимацию и передаем ей метод OnAnimationComplete, который выполнится по завершении
+            animator.StartAnimation(foundLocation.petroglyphSprite, startPosition, endPosition, flyAnimationSpeed, startScale, OnAnimationComplete);
+        }
+    }
+
+    // --- НОВЫЙ МЕТОД, ВЫПОЛНЯЕТСЯ ПОСЛЕ АНИМАЦИИ ---
+    private void OnAnimationComplete()
+    {
+        StartCoroutine(OnAnimationCompleteCoroutine());
+    }
+
+    private IEnumerator OnAnimationCompleteCoroutine()
+    {
+        // Ждем небольшую паузу, чтобы насладиться моментом
+        yield return new WaitForSeconds(delayAfterFinding);
+
+        // Теперь обновляем игру
+        foundPetroglyphsCount++;
+        UpdateFoundCounterText();
+        SelectNextPetroglyph();
+
+        isAnimating = false; // Снимаем блокировку
+    }
+
     public void SelectNextPetroglyph()
     {
         if (availablePetroglyphs.Count > 0)
         {
             ResetTimer();
-            // --- ИСПРАВЛЕНИЕ ОШИБКИ БЫЛО ЗДЕСЬ ---
             int randomIndex = Random.Range(0, availablePetroglyphs.Count);
             currentPetroglyph = availablePetroglyphs[randomIndex];
             petroglyphToFindImage.sprite = currentPetroglyph;
@@ -80,54 +120,6 @@ public class GameManagerPetroglyphs : MonoBehaviour
         }
     }
 
-    public void CheckFoundPetroglyph(PetroglyphLocation foundLocation)
-    {
-        if (!isGameActive || isAnimating) return;
-        if (foundLocation.petroglyphSprite == currentPetroglyph)
-        {
-            StartCoroutine(AnimateFoundPetroglyph(foundLocation));
-        }
-    }
-
-    private IEnumerator AnimateFoundPetroglyph(PetroglyphLocation foundLocation)
-    {
-        isAnimating = true;
-
-        GameObject flyingIcon = Instantiate(flyingPetroglyphPrefab, mainCanvas.transform);
-        flyingIcon.GetComponent<Image>().sprite = foundLocation.petroglyphSprite;
-
-        Vector3 startPosition = Camera.main.WorldToScreenPoint(foundLocation.transform.position);
-        Vector3 endPosition = targetIconTransform.position;
-        flyingIcon.transform.position = startPosition;
-
-        Vector3 initialScale = Vector3.one * startScale;
-        Vector3 finalScale = Vector3.one;
-
-        float distance = Vector3.Distance(startPosition, endPosition);
-        float duration = (flyAnimationSpeed > 0) ? distance / flyAnimationSpeed : 0;
-
-        float elapsedTime = 0f;
-        while (elapsedTime < duration)
-        {
-            float t = elapsedTime / duration;
-            float smoothedT = 1f - Mathf.Cos(t * Mathf.PI * 0.5f);
-
-            flyingIcon.transform.position = Vector3.Lerp(startPosition, endPosition, smoothedT);
-            flyingIcon.transform.localScale = Vector3.Lerp(initialScale, finalScale, smoothedT);
-
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        Destroy(flyingIcon);
-
-        foundPetroglyphsCount++;
-        UpdateFoundCounterText();
-        SelectNextPetroglyph();
-
-        isAnimating = false;
-    }
-
     private void UpdateFoundCounterText()
     {
         if (foundCounterText != null)
@@ -135,6 +127,8 @@ public class GameManagerPetroglyphs : MonoBehaviour
             foundCounterText.text = $"Найдено рисунков: {foundPetroglyphsCount}/{totalPetroglyphsCount}";
         }
     }
+
+    // ... (остальные методы без изменений) ...
 
     private void ResetTimer()
     {
