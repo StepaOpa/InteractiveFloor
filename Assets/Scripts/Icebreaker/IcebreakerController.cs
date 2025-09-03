@@ -19,6 +19,9 @@ public class IcebreakerController : MonoBehaviour
 
     [Header("UI References")]
     [SerializeField] private GameObject endGameScreen;
+    // НОВОЕ ПОЛЕ ДЛЯ КОНТЕЙНЕРА
+    [Tooltip("Объект-контейнер, в котором лежит UI, который нужно скрыть в конце игры (здоровье, дистанция и т.д.).")]
+    [SerializeField] private GameObject inGameUiContainer;
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI detailsText;
     [SerializeField] private CoinControllerIcebreaker coinRewardController;
@@ -46,6 +49,13 @@ public class IcebreakerController : MonoBehaviour
         isGameEnded = false;
         Time.timeScale = 1f;
         endGameScreen.SetActive(false);
+
+        // Включаем игровой UI на старте, на случай если он был выключен в редакторе
+        if (inGameUiContainer != null)
+        {
+            inGameUiContainer.SetActive(true);
+        }
+
         originRotation = transform.rotation;
         maxHealth = health;
         UpdateHealthUI();
@@ -60,9 +70,7 @@ public class IcebreakerController : MonoBehaviour
     void Update()
     {
         if (isGameEnded) return;
-
         Movement();
-
         if (distanceTraveled < winDistance)
         {
             distanceTraveled += Time.deltaTime;
@@ -77,12 +85,9 @@ public class IcebreakerController : MonoBehaviour
     public void TakeDamage(int damage)
     {
         if (isGameEnded) return;
-
         health -= damage;
         if (health < 0) health = 0;
-
         UpdateHealthUI();
-
         if (health <= 0)
         {
             EndGame(false);
@@ -115,6 +120,14 @@ public class IcebreakerController : MonoBehaviour
 
     private IEnumerator EndGameSequence(bool isVictory)
     {
+        // === ЧАСТЬ 1: Выключаем UI и запускаем эффекты ===
+
+        // НОВАЯ СТРОКА: Выключаем игровой интерфейс
+        if (inGameUiContainer != null)
+        {
+            inGameUiContainer.SetActive(false);
+        }
+
         StopMovement();
 
         if (lightController != null)
@@ -124,6 +137,7 @@ public class IcebreakerController : MonoBehaviour
 
         yield return StartCoroutine(ReturnToCenter());
 
+        // === ЧАСТЬ 2: Анимация камеры и подготовка UI ===
         Time.timeScale = 0f;
         endGameScreen.SetActive(false);
 
@@ -134,8 +148,10 @@ public class IcebreakerController : MonoBehaviour
             cameraAnimator.SetTrigger("StartEndAnimation");
         }
 
+        // === ЧАСТЬ 3: Пауза ===
         yield return new WaitForSecondsRealtime(endScreenDelay);
 
+        // === ЧАСТЬ 4: Отображение экрана конца игры ===
         endGameScreen.SetActive(true);
         int coinsToAward = health * 2;
 
