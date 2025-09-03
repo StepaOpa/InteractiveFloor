@@ -30,6 +30,10 @@ public class IcebreakerController : MonoBehaviour
     [SerializeField] private Transform cameraRig;
     [SerializeField] private float endScreenDelay = 1.5f;
 
+    [Header("End Game Effects")]
+    [Tooltip("Перетащи сюда объект с контроллером света для концовки")]
+    [SerializeField] private EndGameLightController lightController;
+
     private Animator cameraAnimator;
     private int maxHealth;
     private float distanceTraveled = 0f;
@@ -88,50 +92,38 @@ public class IcebreakerController : MonoBehaviour
     private void EndGame(bool isVictory)
     {
         if (isGameEnded) return;
-        isGameEnded = true; // Сразу ставим флаг, чтобы Update() перестал работать
+        isGameEnded = true;
         StartCoroutine(EndGameSequence(isVictory));
     }
 
-    // ИЗМЕНЕННАЯ И ИСПРАВЛЕННАЯ КОРУТИНА
     private IEnumerator ReturnToCenter()
     {
-        // Целевая позиция: X = 0, а Y и Z остаются текущими
         Vector3 targetPosition = new Vector3(0, transform.position.y, transform.position.z);
-        // Целевой поворот: без наклонов
         Quaternion targetRotation = Quaternion.identity;
-
-        // Скорость возврата можно сделать настраиваемой, но для начала так будет хорошо
         float returnSpeed = moveSpeed;
 
-        // Цикл работает, пока позиция ИЛИ поворот не достигнут цели
         while (Vector3.Distance(transform.position, targetPosition) > 0.01f || Quaternion.Angle(transform.rotation, targetRotation) > 0.01f)
         {
-            // Плавно двигаем корабль к центру по оси X
             transform.position = Vector3.Lerp(transform.position, targetPosition, returnSpeed * Time.deltaTime);
-
-            // Одновременно плавно выравниваем поворот корабля
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, returnSpeed * Time.deltaTime);
-
-            yield return null; // Ждем следующего кадра
+            yield return null;
         }
 
-        // Гарантированно устанавливаем финальные значения, чтобы избежать неточностей
         transform.position = targetPosition;
         transform.rotation = targetRotation;
     }
 
     private IEnumerator EndGameSequence(bool isVictory)
     {
-        // === ЧАСТЬ 1: Возвращение корабля в центр ===
-        // isGameEnded уже true, так что управление игрока отключено
-
-        // Дополнительно обнуляем ввод, чтобы корабль точно перестал пытаться двигаться
         StopMovement();
 
-        // Ждем, пока выполнится корутина возврата корабля в исходное положение
+        if (lightController != null)
+        {
+            lightController.StartTransition();
+        }
+
         yield return StartCoroutine(ReturnToCenter());
 
-        // === ЧАСТЬ 2: Анимация камеры и подготовка UI ===
         Time.timeScale = 0f;
         endGameScreen.SetActive(false);
 
@@ -142,10 +134,8 @@ public class IcebreakerController : MonoBehaviour
             cameraAnimator.SetTrigger("StartEndAnimation");
         }
 
-        // === ЧАСТЬ 3: Пауза ===
         yield return new WaitForSecondsRealtime(endScreenDelay);
 
-        // === ЧАСТЬ 4: Отображение экрана конца игры ===
         endGameScreen.SetActive(true);
         int coinsToAward = health * 2;
 

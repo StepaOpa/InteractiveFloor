@@ -706,6 +706,37 @@ RectTransform:
   m_AnchoredPosition: {x: -0.01, y: 2.66}
   m_SizeDelta: {x: 0.4509, y: 0.195}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &276152913
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 276152914}
+  m_Layer: 0
+  m_Name: LightEndTarget
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &276152914
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 276152913}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.2373169, y: 0.8964395, z: -0.3711947, w: 0.04786782}
+  m_LocalPosition: {x: 3.5, y: 5, z: 9}
+  m_LocalScale: {x: 52.63, y: 20, z: 2.6}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 40, y: 160, z: -37}
 --- !u!1 &283669485
 GameObject:
   m_ObjectHideFlags: 0
@@ -1718,7 +1749,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.1, g: 0.1, b: 0.1, a: 0.19215687}
+  m_Color: {r: 0.3, g: 0.3, b: 0.3, a: 0.16470589}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2226,6 +2257,7 @@ GameObject:
   - component: {fileID: 1931750133}
   - component: {fileID: 1931750132}
   - component: {fileID: 1931750134}
+  - component: {fileID: 1931750135}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -2289,7 +2321,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 10927
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 0, y: 4.422251e-39, z: 1.029e-42, w: 0}
+  m_BoundingSphereOverride: {x: 4.9331e-41, y: 2.524355e-29, z: 0, w: -1.7582522e+10}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ForceVisible: 0
@@ -2306,13 +2338,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1931750131}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalRotation: {x: 0.5804087, y: -0.03027067, z: -0.119372785, w: 0.8049594}
+  m_LocalPosition: {x: 9.6, y: 17.4, z: -24.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+  m_LocalEulerAnglesHint: {x: 68, y: -30, z: -37.36}
 --- !u!114 &1931750134
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2455,6 +2487,21 @@ MonoBehaviour:
   m_ObsoleteUseShadowQualitySettings: 0
   m_ObsoleteCustomShadowResolution: 512
   m_ObsoleteContactShadows: 0
+--- !u!114 &1931750135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1931750131}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2089f2f4bbab2f745a60cf2804c3b212, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  endGameTarget: {fileID: 276152914}
+  transitionDuration: 2.5
+  lightToMove: {fileID: 0}
 --- !u!1 &1934293663
 GameObject:
   m_ObjectHideFlags: 0
@@ -2891,6 +2938,10 @@ PrefabInstance:
       value: -22
       objectReference: {fileID: 0}
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
+      propertyPath: health
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: cameraRig
       value: 
       objectReference: {fileID: 975911902}
@@ -2912,7 +2963,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: winDistance
-      value: 100
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: distanceText
@@ -2930,6 +2981,10 @@ PrefabInstance:
       propertyPath: gameOverScreen
       value: 
       objectReference: {fileID: 1619671040}
+    - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
+      propertyPath: lightController
+      value: 
+      objectReference: {fileID: 1931750135}
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: coinRewardController
       value: 
@@ -3047,8 +3102,9 @@ SceneRoots:
   - {fileID: 975911902}
   - {fileID: 1737915043}
   - {fileID: 1934293665}
-  - {fileID: 1931750133}
   - {fileID: 1288189084}
+  - {fileID: 1931750133}
+  - {fileID: 276152914}
   - {fileID: 6866890164521251835}
   - {fileID: 1757832780}
   - {fileID: 1992375984}
