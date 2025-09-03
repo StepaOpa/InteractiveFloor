@@ -8,12 +8,18 @@ using TMPro;
 public class GameManagerPetroglyphs : MonoBehaviour
 {
     [Header("UI Elements")]
-    [SerializeField] private GameObject gameUiContainer; // --- ИЗМЕНЕНО: Общий контейнер для всего игрового UI
+    [SerializeField] private GameObject gameUiContainer;
     [SerializeField] private Image petroglyphToFindImage;
     [SerializeField] private TextMeshProUGUI timerText;
-    [SerializeField] private Image timerImage; // Вернул ссылку на таймер, так как она нужна в Update
+    [SerializeField] private Image timerImage;
     [SerializeField] private TextMeshProUGUI foundCounterText;
     [SerializeField] private GameEndPanelPetroglyphs endPanel;
+
+    [Header("UI Animation")]
+    [SerializeField] private GameObject flyingPetroglyphPrefab;
+    [SerializeField] private RectTransform targetIconTransform;
+    [SerializeField] private float flyAnimationSpeed = 800f;
+    [SerializeField] private float startScale = 0.1f;
 
     [Header("Game Settings")]
     [SerializeField] private List<Sprite> allPetroglyphSprites;
@@ -22,18 +28,20 @@ public class GameManagerPetroglyphs : MonoBehaviour
 
     [Header("Scene References")]
     [SerializeField] private CameraController cameraController;
+    [SerializeField] private Canvas mainCanvas;
 
-    private List<Sprite> availablePetroglyphs;
+    private List<Sprite> availablePetroglyphs; // <--- Вот правильное имя переменной
     private Sprite currentPetroglyph;
     private float currentTime;
     private bool isGameActive = true;
+    private bool isAnimating = false;
     private int foundPetroglyphsCount = 0;
     private int totalPetroglyphsCount = 0;
 
     void Start()
     {
         endPanel.gameObject.SetActive(false);
-        gameUiContainer.SetActive(true); // --- НОВАЯ СТРОКА ---
+        gameUiContainer.SetActive(true);
         availablePetroglyphs = new List<Sprite>(allPetroglyphSprites);
         totalPetroglyphsCount = allPetroglyphSprites.Count;
         foundPetroglyphsCount = 0;
@@ -43,7 +51,7 @@ public class GameManagerPetroglyphs : MonoBehaviour
 
     void Update()
     {
-        if (!isGameActive) return;
+        if (!isGameActive || isAnimating) return;
         currentTime -= Time.deltaTime;
         timerImage.fillAmount = currentTime / timePerPetroglyph;
         timerText.text = Mathf.CeilToInt(currentTime).ToString();
@@ -60,6 +68,7 @@ public class GameManagerPetroglyphs : MonoBehaviour
         if (availablePetroglyphs.Count > 0)
         {
             ResetTimer();
+            // --- ИСПРАВЛЕНИЕ ОШИБКИ БЫЛО ЗДЕСЬ ---
             int randomIndex = Random.Range(0, availablePetroglyphs.Count);
             currentPetroglyph = availablePetroglyphs[randomIndex];
             petroglyphToFindImage.sprite = currentPetroglyph;
@@ -73,13 +82,50 @@ public class GameManagerPetroglyphs : MonoBehaviour
 
     public void CheckFoundPetroglyph(PetroglyphLocation foundLocation)
     {
-        if (!isGameActive) return;
+        if (!isGameActive || isAnimating) return;
         if (foundLocation.petroglyphSprite == currentPetroglyph)
         {
-            foundPetroglyphsCount++;
-            UpdateFoundCounterText();
-            SelectNextPetroglyph();
+            StartCoroutine(AnimateFoundPetroglyph(foundLocation));
         }
+    }
+
+    private IEnumerator AnimateFoundPetroglyph(PetroglyphLocation foundLocation)
+    {
+        isAnimating = true;
+
+        GameObject flyingIcon = Instantiate(flyingPetroglyphPrefab, mainCanvas.transform);
+        flyingIcon.GetComponent<Image>().sprite = foundLocation.petroglyphSprite;
+
+        Vector3 startPosition = Camera.main.WorldToScreenPoint(foundLocation.transform.position);
+        Vector3 endPosition = targetIconTransform.position;
+        flyingIcon.transform.position = startPosition;
+
+        Vector3 initialScale = Vector3.one * startScale;
+        Vector3 finalScale = Vector3.one;
+
+        float distance = Vector3.Distance(startPosition, endPosition);
+        float duration = (flyAnimationSpeed > 0) ? distance / flyAnimationSpeed : 0;
+
+        float elapsedTime = 0f;
+        while (elapsedTime < duration)
+        {
+            float t = elapsedTime / duration;
+            float smoothedT = 1f - Mathf.Cos(t * Mathf.PI * 0.5f);
+
+            flyingIcon.transform.position = Vector3.Lerp(startPosition, endPosition, smoothedT);
+            flyingIcon.transform.localScale = Vector3.Lerp(initialScale, finalScale, smoothedT);
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        Destroy(flyingIcon);
+
+        foundPetroglyphsCount++;
+        UpdateFoundCounterText();
+        SelectNextPetroglyph();
+
+        isAnimating = false;
     }
 
     private void UpdateFoundCounterText()
@@ -98,10 +144,7 @@ public class GameManagerPetroglyphs : MonoBehaviour
     private IEnumerator WinGame()
     {
         isGameActive = false;
-
-        // --- ИЗМЕНЕНО: Скрываем весь игровой UI одним махом ---
         gameUiContainer.SetActive(false);
-
         yield return cameraController.MoveCameraToDefaultPosition();
         endPanel.ShowPanel(true, foundPetroglyphsCount, totalPetroglyphsCount, coinsOnWin);
     }
@@ -109,10 +152,7 @@ public class GameManagerPetroglyphs : MonoBehaviour
     private IEnumerator LoseGame()
     {
         isGameActive = false;
-
-        // --- ИЗМЕНЕНО: Скрываем весь игровой UI одним махом ---
         gameUiContainer.SetActive(false);
-
         yield return cameraController.MoveCameraToDefaultPosition();
         endPanel.ShowPanel(false, foundPetroglyphsCount, totalPetroglyphsCount, 0);
     }

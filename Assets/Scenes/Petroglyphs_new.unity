@@ -2444,11 +2444,16 @@ MonoBehaviour:
   timerImage: {fileID: 1930927961}
   foundCounterText: {fileID: 324131707}
   endPanel: {fileID: 1914970677}
+  flyingPetroglyphPrefab: {fileID: 225159617290347177, guid: d42bbbe0a58657842b5b7de13c72c2d8, type: 3}
+  targetIconTransform: {fileID: 332504628}
+  flyAnimationSpeed: 500
+  startScale: 0.4
   allPetroglyphSprites:
   - {fileID: 21300000, guid: 2e90b0847ad9d2843858608efa13b6e1, type: 3}
   timePerPetroglyph: 15
   coinsOnWin: 10
   cameraController: {fileID: 1070223907}
+  mainCanvas: {fileID: 948606555}
 --- !u!4 &1208144967
 Transform:
   m_ObjectHideFlags: 0
@@ -2514,7 +2519,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1251005147
 RectTransform:
   m_ObjectHideFlags: 0
