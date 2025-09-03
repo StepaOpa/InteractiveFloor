@@ -1,3 +1,5 @@
+// Файл: IcebreakerController.cs
+
 using UnityEngine;
 using TMPro;
 using System.Collections;
@@ -26,15 +28,65 @@ public class IcebreakerController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI distanceText;
 
     [Header("Animation")]
-    [Tooltip("Перетащи сюда Main Camera")]
-    [SerializeField] private Animator cameraAnimator;
+    [Tooltip("Перетащи сюда объект CameraRig")]
+    [SerializeField] private Transform cameraRig; // Ссылка на родительский объект камеры (риг)
     [SerializeField] private float endScreenDelay = 1.5f;
 
+    private Animator cameraAnimator; // Ссылка на аниматор, получаем ее из рига
     private int maxHealth;
     private float distanceTraveled = 0f;
     private bool isGameEnded = false;
     private Quaternion originRotation;
     private float uiInput = 0f;
+
+    void Start()
+    {
+        isGameEnded = false;
+        Time.timeScale = 1f;
+        endGameScreen.SetActive(false);
+        originRotation = transform.rotation;
+        maxHealth = health;
+        UpdateHealthUI();
+        UpdateDistanceUI();
+
+        // Получаем компонент Animator с нашего рига при старте игры
+        if (cameraRig != null)
+        {
+            cameraAnimator = cameraRig.GetComponent<Animator>();
+        }
+    }
+
+    void Update()
+    {
+        if (isGameEnded) return;
+
+        Movement();
+
+        if (distanceTraveled < winDistance)
+        {
+            distanceTraveled += Time.deltaTime;
+            UpdateDistanceUI();
+        }
+        else
+        {
+            EndGame(true); // Победа
+        }
+    }
+
+    public void TakeDamage(int damage)
+    {
+        if (isGameEnded) return;
+
+        health -= damage;
+        if (health < 0) health = 0;
+
+        UpdateHealthUI();
+
+        if (health <= 0)
+        {
+            EndGame(false); // Поражение
+        }
+    }
 
     private void EndGame(bool isVictory)
     {
@@ -48,14 +100,18 @@ public class IcebreakerController : MonoBehaviour
         // === ЧАСТЬ 1: Выполняется сразу ===
         isGameEnded = true;
         Time.timeScale = 0f;
-
-        // ========== ИЗМЕНЕНИЕ 1: Жестко выключаем экран перед паузой ==========
-        // Это гарантирует, что он не появится сам по себе.
         endGameScreen.SetActive(false);
 
-        // Запускаем анимацию камеры
-        if (cameraAnimator != null)
+        // Позиционируем риг камеры на корабле перед началом анимации
+        if (cameraRig != null && cameraAnimator != null)
         {
+            // Мгновенно перемещаем риг в позицию корабля
+            cameraRig.position = transform.position;
+
+            // Устанавливаем поворот рига так же, как у корабля (только по оси Y)
+            cameraRig.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
+
+            // Запускаем анимацию
             cameraAnimator.SetTrigger("StartEndAnimation");
         }
 
@@ -63,31 +119,67 @@ public class IcebreakerController : MonoBehaviour
         yield return new WaitForSecondsRealtime(endScreenDelay);
 
         // === ЧАСТЬ 3: Выполняется после паузы ===
-
-        // ========== ИЗМЕНЕНИЕ 2: Теперь включаем экран ==========
-        // Только после паузы мы разрешаем ему появиться
         endGameScreen.SetActive(true);
 
         int coinsToAward = health * 2;
 
-        if (isVictory) { titleText.text = "Победа!"; }
-        else { titleText.text = "Корабль потоплен"; }
+        if (isVictory)
+        {
+            titleText.text = "Победа!";
+        }
+        else
+        {
+            titleText.text = "Корабль потоплен";
+        }
 
         int finalDistance = Mathf.FloorToInt(distanceTraveled);
         detailsText.text = "Пройденное расстояние: " + finalDistance + " м\n" +
                            "Заработано монеток: " + coinsToAward;
 
-        coinRewardController.StartRewardSequence(coinsToAward);
+        if (coinRewardController != null)
+        {
+            coinRewardController.StartRewardSequence(coinsToAward);
+        }
     }
 
-    #region Остальные методы (без изменений)
-    void Start() { isGameEnded = false; Time.timeScale = 1f; endGameScreen.SetActive(false); originRotation = transform.rotation; maxHealth = health; UpdateHealthUI(); UpdateDistanceUI(); }
-    void Update() { if (isGameEnded) return; Movement(); if (distanceTraveled < winDistance) { distanceTraveled += Time.deltaTime; UpdateDistanceUI(); } else { EndGame(true); } }
-    public void TakeDamage(int damage) { if (isGameEnded) return; health -= damage; if (health < 0) health = 0; UpdateHealthUI(); if (health <= 0) { EndGame(false); } }
-    void UpdateHealthUI() { if (healthText != null) { healthText.text = "Прочность корпуса: " + health + " / " + maxHealth; } }
-    void UpdateDistanceUI() { if (distanceText != null) { distanceText.text = "Расстояние: " + Mathf.FloorToInt(distanceTraveled) + " м"; } }
-    void Movement() { float keyboardInput = Input.GetAxis("Horizontal"); float horizontalInput = Mathf.Clamp(keyboardInput + uiInput, -1f, 1f); Vector3 newPosition = transform.position + Vector3.right * horizontalInput * moveSpeed * Time.deltaTime; newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX); transform.position = newPosition; Tilt(horizontalInput); }
-    void Tilt(float horizontalInput) { float tilt = Mathf.Lerp(0, maxTiltAngle, Mathf.Abs(horizontalInput)); float rotation = Mathf.Lerp(0, maxRotation, Mathf.Abs(horizontalInput)); originRotation = Quaternion.Euler(0, rotation * horizontalInput, tilt * horizontalInput); transform.rotation = Quaternion.Slerp(transform.rotation, originRotation, tiltSpeed * Time.deltaTime); }
+    #region UI & Movement Methods
+    void UpdateHealthUI()
+    {
+        if (healthText != null)
+        {
+            healthText.text = "Прочность корпуса: " + health + " / " + maxHealth;
+        }
+    }
+
+    void UpdateDistanceUI()
+    {
+        if (distanceText != null)
+        {
+            distanceText.text = "Расстояние: " + Mathf.FloorToInt(distanceTraveled) + " м";
+        }
+    }
+
+    void Movement()
+    {
+        float keyboardInput = Input.GetAxis("Horizontal");
+        float horizontalInput = Mathf.Clamp(keyboardInput + uiInput, -1f, 1f);
+
+        Vector3 newPosition = transform.position + Vector3.right * horizontalInput * moveSpeed * Time.deltaTime;
+        newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
+        transform.position = newPosition;
+
+        Tilt(horizontalInput);
+    }
+
+    void Tilt(float horizontalInput)
+    {
+        float tilt = Mathf.Lerp(0, maxTiltAngle, Mathf.Abs(horizontalInput));
+        float rotation = Mathf.Lerp(0, maxRotation, Mathf.Abs(horizontalInput));
+
+        originRotation = Quaternion.Euler(0, rotation * horizontalInput, tilt * horizontalInput);
+        transform.rotation = Quaternion.Slerp(transform.rotation, originRotation, tiltSpeed * Time.deltaTime);
+    }
+
     public void StartMoveLeft() { uiInput = -1f; }
     public void StartMoveRight() { uiInput = 1f; }
     public void StopMovement() { uiInput = 0f; }

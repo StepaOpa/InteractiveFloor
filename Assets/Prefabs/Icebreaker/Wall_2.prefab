@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 9094713498402374920}
   m_Layer: 0
   m_Name: Wall_2
-  m_TagString: Obstacle
+  m_TagString: Iceberg
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -28,13 +28,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4849371872089746202}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.7067151, y: -0.0235332, z: -0.7067151, w: -0.0235332}
-  m_LocalPosition: {x: -0.42185593, y: -2.010595, z: 44.9673}
-  m_LocalScale: {x: 17000, y: 3206.0842, z: 13128.908}
+  m_LocalRotation: {x: 0.008351201, y: -0.7070575, z: 0.008351201, w: 0.7070575}
+  m_LocalPosition: {x: 0, y: -2.6, z: 3.9773}
+  m_LocalScale: {x: 16030.605, y: 3206.0842, z: 14125.392}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 183.814, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 178.647, y: 90, z: 180}
 --- !u!33 &5496384629102018779
 MeshFilter:
   m_ObjectHideFlags: 0
