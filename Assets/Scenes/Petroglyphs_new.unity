@@ -2448,6 +2448,7 @@ MonoBehaviour:
   targetIconTransform: {fileID: 332504628}
   flyAnimationSpeed: 500
   startScale: 0.4
+  delayAfterFinding: 0.5
   allPetroglyphSprites:
   - {fileID: 21300000, guid: 2e90b0847ad9d2843858608efa13b6e1, type: 3}
   timePerPetroglyph: 15
@@ -2519,7 +2520,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1251005147
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3759,7 +3760,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.16470589}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
