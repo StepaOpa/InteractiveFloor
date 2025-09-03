@@ -21,7 +21,7 @@ public class IcebreakerController : MonoBehaviour
     [SerializeField] private GameObject endGameScreen;
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI detailsText;
-    [SerializeField] private CoinRewardController coinRewardController;
+    [SerializeField] private CoinControllerIcebreaker coinRewardController;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private TextMeshProUGUI distanceText;
 
