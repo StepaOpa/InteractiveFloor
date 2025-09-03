@@ -2788,10 +2788,12 @@ MonoBehaviour:
   wallPrefabs:
   - {fileID: 4849371872089746202, guid: 09d5a3677da8273499f43babe9edbc36, type: 3}
   leftWallXPosition: -25
-  rightWallXPosition: 111
+  rightWallXPosition: 110.2
   chunkSpawnPoint: {fileID: 1919606934}
   chunkSpeed: 7
   replaceChunkPoint: {fileID: 1361539442}
+  initialChunkCount: 10
+  safeZoneChunks: 2
 --- !u!4 &1992375984
 Transform:
   m_ObjectHideFlags: 0
@@ -2882,7 +2884,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: maxX
-      value: 22
+      value: 21.2
       objectReference: {fileID: 0}
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: minX
@@ -2910,7 +2912,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: winDistance
-      value: 4
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: distanceText
