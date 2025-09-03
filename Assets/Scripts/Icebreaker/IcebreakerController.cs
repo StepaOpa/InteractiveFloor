@@ -1,5 +1,3 @@
-// Файл: IcebreakerController.cs
-
 using UnityEngine;
 using TMPro;
 using System.Collections;
@@ -29,10 +27,10 @@ public class IcebreakerController : MonoBehaviour
 
     [Header("Animation")]
     [Tooltip("Перетащи сюда объект CameraRig")]
-    [SerializeField] private Transform cameraRig; // Ссылка на родительский объект камеры (риг)
+    [SerializeField] private Transform cameraRig;
     [SerializeField] private float endScreenDelay = 1.5f;
 
-    private Animator cameraAnimator; // Ссылка на аниматор, получаем ее из рига
+    private Animator cameraAnimator;
     private int maxHealth;
     private float distanceTraveled = 0f;
     private bool isGameEnded = false;
@@ -49,7 +47,6 @@ public class IcebreakerController : MonoBehaviour
         UpdateHealthUI();
         UpdateDistanceUI();
 
-        // Получаем компонент Animator с нашего рига при старте игры
         if (cameraRig != null)
         {
             cameraAnimator = cameraRig.GetComponent<Animator>();
@@ -69,7 +66,7 @@ public class IcebreakerController : MonoBehaviour
         }
         else
         {
-            EndGame(true); // Победа
+            EndGame(true);
         }
     }
 
@@ -84,43 +81,72 @@ public class IcebreakerController : MonoBehaviour
 
         if (health <= 0)
         {
-            EndGame(false); // Поражение
+            EndGame(false);
         }
     }
 
     private void EndGame(bool isVictory)
     {
         if (isGameEnded) return;
-
+        isGameEnded = true; // Сразу ставим флаг, чтобы Update() перестал работать
         StartCoroutine(EndGameSequence(isVictory));
+    }
+
+    // ИЗМЕНЕННАЯ И ИСПРАВЛЕННАЯ КОРУТИНА
+    private IEnumerator ReturnToCenter()
+    {
+        // Целевая позиция: X = 0, а Y и Z остаются текущими
+        Vector3 targetPosition = new Vector3(0, transform.position.y, transform.position.z);
+        // Целевой поворот: без наклонов
+        Quaternion targetRotation = Quaternion.identity;
+
+        // Скорость возврата можно сделать настраиваемой, но для начала так будет хорошо
+        float returnSpeed = moveSpeed;
+
+        // Цикл работает, пока позиция ИЛИ поворот не достигнут цели
+        while (Vector3.Distance(transform.position, targetPosition) > 0.01f || Quaternion.Angle(transform.rotation, targetRotation) > 0.01f)
+        {
+            // Плавно двигаем корабль к центру по оси X
+            transform.position = Vector3.Lerp(transform.position, targetPosition, returnSpeed * Time.deltaTime);
+
+            // Одновременно плавно выравниваем поворот корабля
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, returnSpeed * Time.deltaTime);
+
+            yield return null; // Ждем следующего кадра
+        }
+
+        // Гарантированно устанавливаем финальные значения, чтобы избежать неточностей
+        transform.position = targetPosition;
+        transform.rotation = targetRotation;
     }
 
     private IEnumerator EndGameSequence(bool isVictory)
     {
-        // === ЧАСТЬ 1: Выполняется сразу ===
-        isGameEnded = true;
+        // === ЧАСТЬ 1: Возвращение корабля в центр ===
+        // isGameEnded уже true, так что управление игрока отключено
+
+        // Дополнительно обнуляем ввод, чтобы корабль точно перестал пытаться двигаться
+        StopMovement();
+
+        // Ждем, пока выполнится корутина возврата корабля в исходное положение
+        yield return StartCoroutine(ReturnToCenter());
+
+        // === ЧАСТЬ 2: Анимация камеры и подготовка UI ===
         Time.timeScale = 0f;
         endGameScreen.SetActive(false);
 
-        // Позиционируем риг камеры на корабле перед началом анимации
         if (cameraRig != null && cameraAnimator != null)
         {
-            // Мгновенно перемещаем риг в позицию корабля
             cameraRig.position = transform.position;
-
-            // Устанавливаем поворот рига так же, как у корабля (только по оси Y)
             cameraRig.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
-
-            // Запускаем анимацию
             cameraAnimator.SetTrigger("StartEndAnimation");
         }
 
-        // === ЧАСТЬ 2: Пауза ===
+        // === ЧАСТЬ 3: Пауза ===
         yield return new WaitForSecondsRealtime(endScreenDelay);
 
-        // === ЧАСТЬ 3: Выполняется после паузы ===
+        // === ЧАСТЬ 4: Отображение экрана конца игры ===
         endGameScreen.SetActive(true);
-
         int coinsToAward = health * 2;
 
         if (isVictory)
