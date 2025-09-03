@@ -2734,7 +2734,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 44a8c0b07dc7bbd4da540545a6e58aee, type: 3}
   - {fileID: 21300000, guid: def71e37cf8b68548b9c1f9108307f8b, type: 3}
   - {fileID: 21300000, guid: 9a7c746cd3f2a7b4b80a341498bf4467, type: 3}
-  timePerPetroglyph: 15
+  timePerPetroglyph: 60
   coinsOnWin: 10
   cameraController: {fileID: 1070223907}
   mainCanvas: {fileID: 948606555}
