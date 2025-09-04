@@ -9,16 +9,24 @@ public class CameraController : MonoBehaviour
 
     [Header("Настройки лупы")]
     [SerializeField] private RectTransform magnifyingGlassRect;
-    private float initialMagnifyingGlassScale;
-    private float initialCameraDistance;
 
+    [Header("Анимация лупы")]
+    [Tooltip("Во сколько раз увеличится лупа при приближении")]
+    [SerializeField] private float zoomInMagnifierMultiplier = 1.5f;
+    [Tooltip("За сколько секунд произойдет анимация увеличения/уменьшения")]
+    [SerializeField] private float magnifierScaleDuration = 0.5f;
+
+    private float initialCameraDistance;
     private List<InteractionPoint> allInteractionPoints;
+
+    private float initialMagnifierScale;
+    private bool isDynamicScalingActive = true;
 
     void Start()
     {
         if (magnifyingGlassRect != null)
         {
-            initialMagnifyingGlassScale = magnifyingGlassRect.localScale.x;
+            initialMagnifierScale = magnifyingGlassRect.localScale.x;
             initialCameraDistance = Vector3.Distance(transform.position, defaultCameraLookAtPosition.position);
         }
 
@@ -37,10 +45,12 @@ public class CameraController : MonoBehaviour
             StartCoroutine(MoveCameraToDefaultPosition());
         }
 
-        UpdateMagnifyingGlassScale();
+        if (isDynamicScalingActive)
+        {
+            UpdateMagnifyingGlassScale();
+        }
     }
 
-    // --- ВРЕМЕННЫЙ МЕТОД ДЛЯ ДИАГНОСТИКИ ---
     private void HandleInteractionClick()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -48,13 +58,8 @@ public class CameraController : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit))
         {
-            // Сначала проверяем, не был ли клик по UI
-            if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
-            {
-                return; // Если да, то ничего не делаем
-            }
+            if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()) return;
 
-            // Если клик был не по UI, ищем точку интереса
             InteractionPoint interactionPoint = hit.collider.gameObject.GetComponentInParent<InteractionPoint>();
             if (interactionPoint != null)
             {
@@ -64,21 +69,77 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    // --- ИСПРАВЛЕННЫЙ МЕТОД ---
     private void MoveCameraToInteractionPoint(InteractionPoint interactionPoint)
     {
-        // ШАГ 1: Сначала получаем всю необходимую информацию из объекта, пока он еще активен.
+        isDynamicScalingActive = false;
+        AnimateMagnifierScale(initialMagnifierScale * zoomInMagnifierMultiplier);
+
         Vector3 targetPosition = interactionPoint.cameraPosition.position;
         Vector3 targetLookAtPosition = interactionPoint.transform.position;
 
-        // ШАГ 2: Теперь, когда у нас есть все данные, можно безопасно спрятать точки.
         SetInteractionPointsVisibility(false);
-
-        // ШАГ 3: Запускаем движение камеры, используя уже сохраненные данные.
         StartCoroutine(MoveCameraToPointCoroutine(targetPosition, targetLookAtPosition));
     }
-    // --- КОНЕЦ ИСПРАВЛЕНИЯ ---
 
+    private void UpdateMagnifyingGlassScale()
+    {
+        if (magnifyingGlassRect == null) return;
+
+        Ray ray = new Ray(transform.position, transform.forward);
+        Plane plane = new Plane(Vector3.up, defaultCameraLookAtPosition.position);
+        float distance;
+        if (plane.Raycast(ray, out distance))
+        {
+            float scaleMultiplier = distance / initialCameraDistance;
+            magnifyingGlassRect.localScale = Vector3.one * initialMagnifierScale * scaleMultiplier;
+        }
+    }
+
+    // --- ГЛАВНОЕ ИЗМЕНЕНИЕ ЗДЕСЬ ---
+    public IEnumerator MoveCameraToDefaultPosition()
+    {
+        // 1. Запускаем анимацию уменьшения лупы. Теперь она НЕ включает компенсацию в конце.
+        AnimateMagnifierScale(initialMagnifierScale);
+
+        // 2. Показываем точки интереса.
+        SetInteractionPointsVisibility(true);
+
+        Vector3 targetPosition = defaultCameraPosition.position;
+        Vector3 targetLookAtPosition = defaultCameraLookAtPosition.position;
+
+        // 3. ЖДЕМ, ПОКА КАМЕРА ПОЛНОСТЬЮ ЗАВЕРШИТ ДВИЖЕНИЕ.
+        yield return MoveCameraToPointCoroutine(targetPosition, targetLookAtPosition);
+
+        // 4. И ТОЛЬКО ТЕПЕРЬ, когда камера на месте, включаем компенсацию.
+        isDynamicScalingActive = true;
+    }
+
+    // --- Метод и корутина анимации упрощены ---
+    private void AnimateMagnifierScale(float targetScale)
+    {
+        StopCoroutine("AnimateScaleCoroutine");
+        StartCoroutine(AnimateScaleCoroutine(targetScale, magnifierScaleDuration));
+    }
+
+    private IEnumerator AnimateScaleCoroutine(float targetScale, float duration)
+    {
+        Vector3 startScale = magnifyingGlassRect.localScale;
+        Vector3 endScale = Vector3.one * targetScale;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.SmoothStep(0, 1, elapsed / duration);
+            magnifyingGlassRect.localScale = Vector3.Lerp(startScale, endScale, t);
+            yield return null;
+        }
+
+        magnifyingGlassRect.localScale = endScale;
+        // Мы убрали отсюда включение isDynamicScalingActive
+    }
+
+    // Остальные методы без изменений
     private IEnumerator MoveCameraToPointCoroutine(Vector3 targetPosition, Vector3 targetLookAtPosition)
     {
         float duration = 1.0f;
@@ -102,30 +163,6 @@ public class CameraController : MonoBehaviour
 
         transform.position = targetPosition;
         transform.rotation = targetRotation;
-    }
-
-    private void UpdateMagnifyingGlassScale()
-    {
-        if (magnifyingGlassRect == null) return;
-
-        Ray ray = new Ray(transform.position, transform.forward);
-        Plane plane = new Plane(Vector3.up, defaultCameraLookAtPosition.position);
-        float distance;
-        if (plane.Raycast(ray, out distance))
-        {
-            float scaleMultiplier = distance / initialCameraDistance;
-            magnifyingGlassRect.localScale = Vector3.one * initialMagnifyingGlassScale * scaleMultiplier;
-        }
-    }
-
-    public IEnumerator MoveCameraToDefaultPosition()
-    {
-        SetInteractionPointsVisibility(true);
-
-        Vector3 targetPosition = defaultCameraPosition.position;
-        Vector3 targetLookAtPosition = defaultCameraLookAtPosition.position;
-
-        yield return MoveCameraToPointCoroutine(targetPosition, targetLookAtPosition);
     }
 
     private void SetInteractionPointsVisibility(bool isVisible)
