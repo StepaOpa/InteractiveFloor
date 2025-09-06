@@ -1,89 +1,82 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // Эта строка нужна для перезагрузки сцены
-using TMPro; // Эта строка нужна для работы с текстом
+using UnityEngine.SceneManagement;
+using TMPro;
+using System.Collections; // <<< НОВОЕ: Добавьте эту строку для работы с корутинами
 
 public class GameManagerLabyrinth : MonoBehaviour
 {
     [Header("Ссылки на объекты сцены")]
-    public GameObject endGamePanel;          // Сюда перетащим панель конца игры
-    public PlayerControllerLabyrinth player; // Сюда перетащим объект рыбы
-    public TimerControllerLabyrinth timer;   // Сюда перетащим скрипт таймера
+    public GameObject endGamePanel;
+    public PlayerControllerLabyrinth player;
+    public TimerControllerLabyrinth timer;
+    public CameraControllerLabyrinth cameraController; // <<< НОВОЕ: Ссылка на скрипт камеры
 
     [Header("Элементы UI на EndGamePanel")]
-    public TextMeshProUGUI titleText;        // Текст "Победа" / "Поражение"
-    public TextMeshProUGUI detailsText;      // Детальный текст (причина)
+    public TextMeshProUGUI titleText;
+    public TextMeshProUGUI detailsText;
 
-    private bool isGameOver = false; // Флаг, который показывает, что игра уже закончилась
+    private bool isGameOver = false;
 
+    // ... (методы Start и Update остаются без изменений) ...
     void Start()
     {
-        // В начале игры всегда прячем панель конца игры
         endGamePanel.SetActive(false);
-        // Включаем время (важно для перезапуска)
         Time.timeScale = 1f;
     }
 
     void Update()
     {
-        // Если игра уже закончилась, то ничего не делаем
         if (isGameOver) return;
-
-        // Постоянно проверяем, не вышло ли время на таймере
         if (timer.timeIsUp)
         {
-            // Если время вышло, вызываем функцию поражения
             LoseGame("Время вышло!");
         }
     }
 
-    // Этот метод будет вызываться, когда игрок победил
+    // --- Методы Win/Lose теперь запускают корутину ---
     public void WinGame()
     {
-        if (isGameOver) return; // Дополнительная проверка, чтобы не сработал дважды
+        if (isGameOver) return;
         isGameOver = true;
-
         titleText.text = "Победа!";
         detailsText.text = "Вы нашли выход из лабиринта!";
-
-        EndGameSequence();
+        StartCoroutine(EndGameSequence()); // <<< ИЗМЕНЕНО
     }
 
-    // Этот метод будет вызываться, когда игрок проиграл
     public void LoseGame(string reason)
     {
         if (isGameOver) return;
         isGameOver = true;
-
         titleText.text = "Поражение!";
-        detailsText.text = reason; // Показываем причину: "Время вышло!" или "Попались в сеть!"
-
-        EndGameSequence();
+        detailsText.text = reason;
+        StartCoroutine(EndGameSequence()); // <<< ИЗМЕНЕНО
     }
 
-    // Общая последовательность действий в конце игры
-    private void EndGameSequence()
+    // --- Старый метод EndGameSequence заменен на корутину ---
+    private IEnumerator EndGameSequence()
     {
-        // "Замораживаем" игру
-        Time.timeScale = 0f;
-        // Отключаем скрипт управления рыбой, чтобы ей нельзя было двигать
+        // 1. Отключаем управление рыбой
         player.enabled = false;
-        // Показываем панель
+
+        // 2. Говорим камере переключиться на общий план
+        cameraController.SwitchToFarViewImmediately();
+
+        // 3. Ждем 1.5 секунды, пока камера "отъедет"
+        yield return new WaitForSeconds(1.5f);
+
+        // 4. Только теперь "замораживаем" игру и показываем панель
+        Time.timeScale = 0f;
         endGamePanel.SetActive(true);
     }
 
-    // --- Методы для кнопок на EndGamePanel ---
-
+    // ... (методы RestartGame и GoToMenu остаются без изменений) ...
     public void RestartGame()
     {
-        // Перезагружаем текущую сцену
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void GoToMenu()
     {
-        // В будущем здесь будет код для перехода в главное меню
-        // Пока просто выведем сообщение в консоль
         Debug.Log("Переход в главное меню...");
-        // SceneManager.LoadScene("MainMenuScene"); // Пример, как это будет выглядеть
     }
 }
