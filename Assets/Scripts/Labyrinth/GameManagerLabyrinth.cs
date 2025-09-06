@@ -2,10 +2,17 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
-using System.Collections.Generic;
+using System.Collections.Generic; // Уже есть
 
 public class GameManagerLabyrinth : MonoBehaviour
 {
+    // <<< НОВОЕ: Структура для хранения информации об отложенной поимке >>>
+    private struct PendingCatch
+    {
+        public GameObject fishToCatch;
+        public Transform netTransform;
+    }
+
     [Header("Ссылки на объекты сцены")]
     public GameObject endGamePanel;
     public PlayerControllerLabyrinth player;
@@ -21,9 +28,15 @@ public class GameManagerLabyrinth : MonoBehaviour
     [Header("Настройки рыбок")]
     public TextMeshProUGUI fishCounterText;
     public List<GameObject> fishObjects;
-    private int currentFishCount;
+    // <<< НОВОЕ: Расстояние, на которое нужно отплыть, чтобы рыбка "попалась" >>>
+    [Tooltip("На каком расстоянии от сети рыбка окончательно 'попадется'")]
+    public float catchDistanceThreshold = 3.0f;
 
+    private int currentFishCount;
     private bool isGameOver = false;
+
+    // <<< НОВОЕ: Очередь для отложенных поимок >>>
+    private Queue<PendingCatch> pendingCatches = new Queue<PendingCatch>();
 
     void Start()
     {
@@ -31,29 +44,61 @@ public class GameManagerLabyrinth : MonoBehaviour
         UpdateFishCounterUI();
     }
 
-    // <<< ИЗМЕНЕНО: Теперь метод принимает Transform сети, в которую попалась рыбка >>>
+    void Update()
+    {
+        // В каждом кадре проверяем, не пора ли выполнить отложенную поимку
+        ProcessPendingCatches();
+    }
+
+    // <<< ИЗМЕНЕНО: Теперь метод не перемещает рыбку, а ставит поимку в очередь >>>
     public void CatchOneFish(Transform netTransform)
     {
         if (isGameOver || currentFishCount <= 0) return;
 
         currentFishCount--;
+        UpdateFishCounterUI(); // Сразу обновляем UI, чтобы игрок видел потерю
 
-        // <<< ИЗМЕНЕНО: Вместо отключения рыбки, мы делаем следующее: >>>
-
-        // 1. Находим рыбку, которую нужно "поймать"
+        // Находим рыбку, которую нужно будет поймать
         GameObject fishToCatch = fishObjects[currentFishCount];
 
-        // 2. "Отцепляем" её от родительской группы, чтобы она перестала двигаться с игроком
-        fishToCatch.transform.parent = null;
+        // Создаем новую "задачу" на поимку
+        PendingCatch newCatch = new PendingCatch
+        {
+            fishToCatch = fishToCatch,
+            netTransform = netTransform
+        };
 
-        // 3. Перемещаем её в центр сети
-        fishToCatch.transform.position = netTransform.position;
-
-        UpdateFishCounterUI();
+        // Добавляем задачу в очередь
+        pendingCatches.Enqueue(newCatch);
 
         if (currentFishCount <= 0)
         {
             LoseGame("Все рыбки попались в сети!");
+        }
+    }
+
+    // <<< НОВЫЙ МЕТОД: Обработчик очереди >>>
+    void ProcessPendingCatches()
+    {
+        // Если в очереди есть задачи и игрок еще существует
+        if (pendingCatches.Count > 0 && player != null)
+        {
+            // Смотрим на первую задачу в очереди (не удаляя её)
+            PendingCatch nextCatch = pendingCatches.Peek();
+
+            // Проверяем дистанцию от игрока до сети
+            float distance = Vector3.Distance(player.transform.position, nextCatch.netTransform.position);
+
+            // Если игрок отплыл достаточно далеко
+            if (distance > catchDistanceThreshold)
+            {
+                // Извлекаем задачу из очереди
+                PendingCatch catchToExecute = pendingCatches.Dequeue();
+
+                // И теперь выполняем саму логику "поимки"
+                catchToExecute.fishToCatch.transform.parent = null; // Отцепляем от группы
+                catchToExecute.fishToCatch.transform.position = catchToExecute.netTransform.position; // Перемещаем в сеть
+            }
         }
     }
 
@@ -73,18 +118,9 @@ public class GameManagerLabyrinth : MonoBehaviour
         isGameOver = true;
 
         int reward = 0;
-        if (currentFishCount == 3)
-        {
-            reward = 10;
-        }
-        else if (currentFishCount == 2)
-        {
-            reward = 5;
-        }
-        else if (currentFishCount == 1)
-        {
-            reward = 1;
-        }
+        if (currentFishCount == 3) { reward = 10; }
+        else if (currentFishCount == 2) { reward = 5; }
+        else if (currentFishCount == 1) { reward = 1; }
 
         titleText.text = "Победа!";
         detailsText.text = "Вы нашли выход из лабиринта!\nЗаработано монет: " + reward;
@@ -102,25 +138,15 @@ public class GameManagerLabyrinth : MonoBehaviour
 
     private IEnumerator EndGameSequence(bool didWin, int finalReward)
     {
-        if (inGameUIContainer != null)
-        {
-            inGameUIContainer.SetActive(false);
-        }
-
+        if (inGameUIContainer != null) { inGameUIContainer.SetActive(false); }
         player.enabled = false;
         timer.enabled = false;
         cameraController.SwitchToFarViewImmediately();
         yield return new WaitForSeconds(1.5f);
         endGamePanel.SetActive(true);
 
-        if (didWin)
-        {
-            StartCoroutine(coinRewardController.GetRewardSequenceCoroutine(finalReward));
-        }
-        else
-        {
-            Time.timeScale = 0f;
-        }
+        if (didWin) { StartCoroutine(coinRewardController.GetRewardSequenceCoroutine(finalReward)); }
+        else { Time.timeScale = 0f; }
     }
 
     public void RestartGame()
