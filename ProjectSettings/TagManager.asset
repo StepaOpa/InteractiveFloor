@@ -9,6 +9,8 @@ TagManager:
   - Obstacle
   - Iceberg
   - Diggable
+  - WinZone
+  - Trap
   layers:
   - Default
   - TransparentFX
