@@ -12,48 +12,45 @@ public class FishAnimator : MonoBehaviour
     [Tooltip("Скорость покачивания.")]
     public float bobSpeed = 2f;
 
-    // Ссылка на Rigidbody родительского объекта (нашей группы)
-    private Rigidbody parentRigidbody;
-    // Начальная локальная позиция, чтобы покачивание было относительно неё
+    // <<< ИЗМЕНЕНО: Ссылка на PlayerController вместо Rigidbody >>>
+    private PlayerControllerLabyrinth playerController;
     private Vector3 initialLocalPosition;
-    // Случайное смещение, чтобы рыбки качались не синхронно
     private float randomOffset;
 
     void Start()
     {
-        // Находим компонент Rigidbody у родителя
-        parentRigidbody = GetComponentInParent<Rigidbody>();
+        // <<< ИЗМЕНЕНО: Ищем PlayerController в родительских объектах >>>
+        // Это сработает, так как рыбка (или ее pivot) находится внутри GroupFish, на которой висит контроллер
+        playerController = GetComponentInParent<PlayerControllerLabyrinth>();
 
-        // Запоминаем начальную позицию и случайное смещение
+        // Запоминаем начальную позицию и случайное смещение для уникальности анимации
         initialLocalPosition = transform.localPosition;
-        randomOffset = Random.Range(0f, 10f); // У каждой рыбки будет своё уникальное движение
+        randomOffset = Random.Range(0f, 10f);
     }
 
     void Update()
     {
-        // --- Логика покачивания ---
-        // Используем синусоиду для создания плавного движения вверх-вниз
+        // Логика покачивания остается без изменений
         float yOffset = Mathf.Sin((Time.time * bobSpeed) + randomOffset) * bobAmplitude;
-
-        // Применяем смещение к начальной позиции
         transform.localPosition = initialLocalPosition + new Vector3(0, yOffset, 0);
     }
 
     void LateUpdate()
     {
-        // --- Логика поворота ---
-        // Получаем вектор скорости движения группы
-        Vector3 movementDirection = parentRigidbody.linearVelocity;
-
-        // Поворачиваем рыбку только если есть движение (чтобы она не смотрела в пол при остановке)
-        // sqrMagnitude быстрее, чем magnitude, для простой проверки на ноль
-        if (movementDirection.sqrMagnitude > 0.1f)
+        // <<< ИЗМЕНЕНО: Логика поворота теперь основана на вводе игрока, а не на скорости >>>
+        if (playerController != null)
         {
-            // Создаем "целевой" поворот, который смотрит в сторону движения
-            Quaternion targetRotation = Quaternion.LookRotation(movementDirection);
+            // Получаем вектор последнего ввода из контроллера
+            Vector3 movementDirection = playerController.LastInputDirection;
 
-            // Плавно поворачиваем текущий объект в сторону целевого поворота
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+            // Поворачиваем рыбку, если есть направление
+            if (movementDirection.sqrMagnitude > 0.01f)
+            {
+                // Создаем целевой поворот, который "смотрит" в сторону движения
+                Quaternion targetRotation = Quaternion.LookRotation(movementDirection);
+                // Плавно интерполируем текущий поворот к целевому
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
+            }
         }
     }
 }

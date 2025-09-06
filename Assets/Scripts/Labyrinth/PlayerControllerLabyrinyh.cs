@@ -9,6 +9,10 @@ public class PlayerControllerLabyrinth : MonoBehaviour
 
     public bool canMove = true;
 
+    // <<< НОВОЕ: Свойство, хранящее последнее направление ввода >>>
+    // Оно публичное, чтобы другие скрипты (как FishAnimator) могли его читать
+    public Vector3 LastInputDirection { get; private set; } = Vector3.forward; // Начинаем смотреть вперед по умолчанию
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -29,6 +33,13 @@ public class PlayerControllerLabyrinth : MonoBehaviour
 
         Vector3 totalMovement = keyboardMovement + moveDirection;
         rb.AddForce(totalMovement.normalized * moveSpeed);
+
+        // <<< НОВОЕ: Запоминаем направление, если есть ввод (кнопка нажата) >>>
+        // Используем sqrMagnitude, так как это быстрее, чем вычислять корень для Magnitude
+        if (totalMovement.sqrMagnitude > 0.01f)
+        {
+            LastInputDirection = totalMovement.normalized;
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -38,11 +49,7 @@ public class PlayerControllerLabyrinth : MonoBehaviour
 
         if (other.CompareTag("Net"))
         {
-            // <<< ИЗМЕНЕНИЕ 1: Передаем в GameManager информацию о том, ГДЕ находится сеть >>>
             gameManager.CatchOneFish(other.transform);
-
-            // <<< ИЗМЕНЕНИЕ 2: Вместо отключения объекта, отключаем его коллайдер >>>
-            // Теперь сеть останется видимой, но больше не будет срабатывать
             other.enabled = false;
         }
     }
