@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
-using System.Collections; // <<< НОВОЕ: Добавьте эту строку для работы с корутинами
+using System.Collections;
 
 public class GameManagerLabyrinth : MonoBehaviour
 {
@@ -9,7 +9,10 @@ public class GameManagerLabyrinth : MonoBehaviour
     public GameObject endGamePanel;
     public PlayerControllerLabyrinth player;
     public TimerControllerLabyrinth timer;
-    public CameraControllerLabyrinth cameraController; // <<< НОВОЕ: Ссылка на скрипт камеры
+    public CameraControllerLabyrinth cameraController;
+    public CoinRewardControllerLabyrinth coinRewardController;
+    // <<< НОВОЕ: Ссылка на контейнер с игровым UI >>>
+    public GameObject inGameUIContainer;
 
     [Header("Элементы UI на EndGamePanel")]
     public TextMeshProUGUI titleText;
@@ -17,30 +20,17 @@ public class GameManagerLabyrinth : MonoBehaviour
 
     private bool isGameOver = false;
 
-    // ... (методы Start и Update остаются без изменений) ...
-    void Start()
-    {
-        endGamePanel.SetActive(false);
-        Time.timeScale = 1f;
-    }
+    // ... (Start и Update остаются без изменений) ...
+    void Start() { /* ... */ }
+    void Update() { /* ... */ }
 
-    void Update()
-    {
-        if (isGameOver) return;
-        if (timer.timeIsUp)
-        {
-            LoseGame("Время вышло!");
-        }
-    }
-
-    // --- Методы Win/Lose теперь запускают корутину ---
     public void WinGame()
     {
         if (isGameOver) return;
         isGameOver = true;
         titleText.text = "Победа!";
-        detailsText.text = "Вы нашли выход из лабиринта!";
-        StartCoroutine(EndGameSequence()); // <<< ИЗМЕНЕНО
+        detailsText.text = "Вы нашли выход из лабиринта!\nЗаработано монет: 10";
+        StartCoroutine(EndGameSequence(true));
     }
 
     public void LoseGame(string reason)
@@ -49,34 +39,40 @@ public class GameManagerLabyrinth : MonoBehaviour
         isGameOver = true;
         titleText.text = "Поражение!";
         detailsText.text = reason;
-        StartCoroutine(EndGameSequence()); // <<< ИЗМЕНЕНО
+        StartCoroutine(EndGameSequence(false));
     }
 
-    // --- Старый метод EndGameSequence заменен на корутину ---
-    private IEnumerator EndGameSequence()
+    private IEnumerator EndGameSequence(bool didWin)
     {
-        // 1. Отключаем управление рыбой
+        // <<< НОВОЕ: В самом начале концовки выключаем игровой интерфейс >>>
+        inGameUIContainer.SetActive(false);
+
+        // --- Остальная логика остается прежней ---
         player.enabled = false;
-
-        // 2. Говорим камере переключиться на общий план
+        timer.enabled = false;
         cameraController.SwitchToFarViewImmediately();
-
-        // 3. Ждем 1.5 секунды, пока камера "отъедет"
         yield return new WaitForSeconds(1.5f);
-
-        // 4. Только теперь "замораживаем" игру и показываем панель
-        Time.timeScale = 0f;
         endGamePanel.SetActive(true);
+
+        if (didWin)
+        {
+            StartCoroutine(coinRewardController.GetRewardSequenceCoroutine(10));
+        }
+        else
+        {
+            Time.timeScale = 0f;
+        }
     }
 
-    // ... (методы RestartGame и GoToMenu остаются без изменений) ...
     public void RestartGame()
     {
+        Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     public void GoToMenu()
     {
+        Time.timeScale = 1f;
         Debug.Log("Переход в главное меню...");
     }
 }
