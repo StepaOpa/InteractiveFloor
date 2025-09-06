@@ -11,6 +11,7 @@ TagManager:
   - Diggable
   - WinZone
   - Trap
+  - Net
   layers:
   - Default
   - TransparentFX

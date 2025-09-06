@@ -7,7 +7,6 @@ public class PlayerControllerLabyrinth : MonoBehaviour
     private Vector3 moveDirection = Vector3.zero;
     private GameManagerLabyrinth gameManager;
 
-    // --- �����: ��� "�����������" �������� ---
     public bool canMove = true;
 
     void Start()
@@ -18,10 +17,8 @@ public class PlayerControllerLabyrinth : MonoBehaviour
 
     void FixedUpdate()
     {
-        // --- �����: ���� ��������� ������, ������� �� ������ ---
         if (!canMove)
         {
-            // ����� �������� ����, ����� ���� ����� ������������
             rb.linearVelocity = Vector3.zero;
             return;
         }
@@ -37,10 +34,19 @@ public class PlayerControllerLabyrinth : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("WinZone")) { gameManager.WinGame(); }
-        if (other.CompareTag("Trap")) { gameManager.LoseGame("�� �������� � ����!"); }
+        if (other.CompareTag("Trap")) { gameManager.LoseGame("Вы попались в ловушку!"); }
+
+        if (other.CompareTag("Net"))
+        {
+            // <<< ИЗМЕНЕНИЕ 1: Передаем в GameManager информацию о том, ГДЕ находится сеть >>>
+            gameManager.CatchOneFish(other.transform);
+
+            // <<< ИЗМЕНЕНИЕ 2: Вместо отключения объекта, отключаем его коллайдер >>>
+            // Теперь сеть останется видимой, но больше не будет срабатывать
+            other.enabled = false;
+        }
     }
 
-    // --- �����: ��������� �������� � ������ ����� ��� ������ ---
     public void OnPointerDownForward() { if (!canMove) return; moveDirection.z = 1; }
     public void OnPointerDownBack() { if (!canMove) return; moveDirection.z = -1; }
     public void OnPointerDownLeft() { if (!canMove) return; moveDirection.x = -1; }
