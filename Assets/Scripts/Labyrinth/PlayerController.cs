@@ -2,35 +2,74 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    // Эта переменная будет видна в инспекторе Unity.
-    // Она определяет, как быстро будет двигаться рыба.
     public float moveSpeed = 5.0f;
-
-    // Ссылка на компонент Rigidbody, который отвечает за физику.
     private Rigidbody rb;
 
-    // Start вызывается один раз при запуске игры.
+    // Этот вектор будет хранить направление движения от кнопок.
+    private Vector3 moveDirection = Vector3.zero;
+
     void Start()
     {
-        // Находим и сохраняем компонент Rigidbody, который висит на этом же объекте.
         rb = GetComponent<Rigidbody>();
     }
 
-    // Update вызывается каждый кадр. Здесь мы будем считывать ввод.
-    // Но двигать будем в FixedUpdate для стабильной работы физики.
     void FixedUpdate()
     {
-        // Получаем ввод с клавиатуры (стрелки или WASD).
-        // Input.GetAxis вернет значение от -1 до 1.
-        float moveHorizontal = Input.GetAxis("Horizontal"); // A, D, стрелки влево/вправо
-        float moveVertical = Input.GetAxis("Vertical");     // W, S, стрелки вверх/вниз
+        // --- Движение от клавиатуры (оставляем его) ---
+        float moveHorizontal = Input.GetAxis("Horizontal");
+        float moveVertical = Input.GetAxis("Vertical");
+        Vector3 keyboardMovement = new Vector3(moveHorizontal, 0.0f, moveVertical);
 
-        // Создаем вектор направления движения.
-        // Мы двигаемся по осям X и Z (по горизонтальной плоскости).
-        Vector3 movement = new Vector3(moveHorizontal, 0.0f, moveVertical);
+        // --- Движение от UI кнопок ---
+        // Складываем движение от клавиатуры и от кнопок.
+        // Если нажата и клавиша, и кнопка, движение будет быстрее.
+        // Если нужно, чтобы работало что-то одно, нужно будет усложнить логику.
+        Vector3 totalMovement = keyboardMovement + moveDirection;
 
-        // Применяем силу к Rigidbody, чтобы двигать рыбу.
-        // Мы умножаем направление на скорость, чтобы контролировать быстроту.
-        rb.AddForce(movement * moveSpeed);
+        rb.AddForce(totalMovement.normalized * moveSpeed);
+    }
+
+    // --- Новые публичные методы для кнопок ---
+
+    // Этот метод будет вызываться, когда кнопка "Вперед" НАЖАТА
+    public void OnPointerDownForward()
+    {
+        moveDirection.z = 1;
+    }
+
+    // Этот метод будет вызываться, когда кнопка "Вперед" ОТПУЩЕНА
+    public void OnPointerUpForward()
+    {
+        moveDirection.z = 0;
+    }
+
+    public void OnPointerDownBack()
+    {
+        moveDirection.z = -1;
+    }
+
+    public void OnPointerUpBack()
+    {
+        moveDirection.z = 0;
+    }
+
+    public void OnPointerDownLeft()
+    {
+        moveDirection.x = -1;
+    }
+
+    public void OnPointerUpLeft()
+    {
+        moveDirection.x = 0;
+    }
+
+    public void OnPointerDownRight()
+    {
+        moveDirection.x = 1;
+    }
+
+    public void OnPointerUpRight()
+    {
+        moveDirection.x = 0;
     }
 }
