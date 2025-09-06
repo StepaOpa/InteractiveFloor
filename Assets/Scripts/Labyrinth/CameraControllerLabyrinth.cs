@@ -7,26 +7,30 @@ public class CameraControllerLabyrinth : MonoBehaviour
     public Transform farViewTarget;   // "Якорь" для общего плана
 
     [Header("Настройки")]
-    public float smoothSpeed = 5f; // Скорость, с которой камера будет двигаться
+    // Было: public float smoothSpeed = 5f;
+    // Стало: Время, за которое камера догонит цель. Меньше = быстрее!
+    public float smoothTime = 0.2f;
+
+    // Эта переменная нужна для работы SmoothDamp, она хранит текущую скорость камеры
+    private Vector3 velocity = Vector3.zero;
 
     private bool isCloseView = true; // Начинаем с приближенного вида
 
-    // LateUpdate вызывается после всех Update. Идеально для камер,
-    // чтобы избежать дрожания, когда камера и игрок движутся в одном кадре.
     void LateUpdate()
     {
         Transform target = isCloseView ? closeViewTarget : farViewTarget;
 
-        // Плавно перемещаем камеру в позицию цели
-        Vector3 smoothedPosition = Vector3.Lerp(transform.position, target.position, smoothSpeed * Time.deltaTime);
-        transform.position = smoothedPosition;
+        // --- ЭТА СТРОКА ИЗМЕНИЛАСЬ ---
+        // Было: Vector3.Lerp(...)
+        // Стало: Vector3.SmoothDamp(...)
+        transform.position = Vector3.SmoothDamp(transform.position, target.position, ref velocity, smoothTime);
 
-        // Плавно поворачиваем камеру в сторону цели
-        Quaternion smoothedRotation = Quaternion.Lerp(transform.rotation, target.rotation, smoothSpeed * Time.deltaTime);
+        // Поворот можно оставить с Lerp, он работает хорошо для вращения
+        Quaternion smoothedRotation = Quaternion.Lerp(transform.rotation, target.rotation, 5f * Time.deltaTime);
         transform.rotation = smoothedRotation;
     }
 
-    // --- Методы для кнопок UI ---
+    // --- Остальные методы остаются без изменений ---
 
     public void SetCloseView()
     {
@@ -38,8 +42,6 @@ public class CameraControllerLabyrinth : MonoBehaviour
         isCloseView = false;
     }
 
-    // --- Метод для GameManager'а ---
-    // Он будет принудительно переключать на общий план перед концом игры
     public void SwitchToFarViewImmediately()
     {
         isCloseView = false;

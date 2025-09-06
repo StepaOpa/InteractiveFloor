@@ -573,7 +573,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   closeViewTarget: {fileID: 977276481}
   farViewTarget: {fileID: 444346043}
-  smoothSpeed: 5
+  smoothTime: 0.01
 --- !u!1 &176282709
 GameObject:
   m_ObjectHideFlags: 0
