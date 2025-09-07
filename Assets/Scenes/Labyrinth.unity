@@ -10056,7 +10056,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   timerImage: {fileID: 2075588397}
-  timeLimit: 5
+  timeLimit: 100
   timeIsUp: 0
   timerText: {fileID: 743156212}
 --- !u!4 &900894245
@@ -10096,9 +10096,9 @@ MonoBehaviour:
   detailsText: {fileID: 351388101}
   fishCounterText: {fileID: 319341668}
   fishObjects:
-  - {fileID: 1037207261}
-  - {fileID: 1964996846}
   - {fileID: 331894173}
+  - {fileID: 1964996846}
+  - {fileID: 1037207261}
   catchDistanceThreshold: 0.05
 --- !u!1 &916253428
 GameObject:
@@ -11533,7 +11533,7 @@ Transform:
   m_GameObject: {fileID: 1037207261}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.2474989, y: 0.01661852, z: -0.049999915}
+  m_LocalPosition: {x: 1.09, y: 0.01661852, z: 0.05}
   m_LocalScale: {x: 20, y: 20, z: 20}
   m_ConstrainProportionsScale: 1
   m_Children:
@@ -20969,7 +20969,7 @@ Transform:
   m_GameObject: {fileID: 1964996846}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.040911883, y: 0.020756572, z: 0.32000002}
+  m_LocalPosition: {x: 0.12, y: 0.020756572, z: 0.4}
   m_LocalScale: {x: 15, y: 15, z: 15}
   m_ConstrainProportionsScale: 0
   m_Children:
