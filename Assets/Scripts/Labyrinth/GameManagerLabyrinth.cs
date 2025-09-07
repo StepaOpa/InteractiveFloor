@@ -40,9 +40,25 @@ public class GameManagerLabyrinth : MonoBehaviour
         UpdateFishCounterUI();
     }
 
+    // <<< ИЗМЕНЕНИЕ ЗДЕСЬ >>>
     void Update()
     {
+        // Если игра уже закончилась (победой или поражением), прекращаем все проверки.
+        if (isGameOver)
+        {
+            return;
+        }
+
+        // Продолжаем обрабатывать механику "отложенной" поимки рыбок.
         ProcessPendingCatches();
+
+        // <<< ДОБАВЛЕНА ПРОВЕРКА ТАЙМЕРА >>>
+        // В каждом кадре проверяем, не закончилось ли время в скрипте таймера.
+        if (timer != null && timer.timeIsUp)
+        {
+            // Если время вышло, вызываем поражение.
+            LoseGame("Время вышло!");
+        }
     }
 
     public void CatchOneFish(Transform netTransform)
@@ -80,11 +96,10 @@ public class GameManagerLabyrinth : MonoBehaviour
                 catchToExecute.fishToCatch.transform.parent = null;
                 catchToExecute.fishToCatch.transform.position = catchToExecute.netTransform.position;
 
-                // <<< НОВОЕ: Отключаем аниматор у пойманной рыбки, чтобы она замерла на месте >>>
                 FishAnimator animator = catchToExecute.fishToCatch.GetComponent<FishAnimator>();
                 if (animator != null)
                 {
-                    animator.enabled = false; // Просто отключаем скрипт, он перестает выполняться
+                    animator.enabled = false;
                 }
             }
         }
