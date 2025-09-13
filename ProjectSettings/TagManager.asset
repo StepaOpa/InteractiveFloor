@@ -12,6 +12,7 @@ TagManager:
   - WinZone
   - Trap
   - Net
+  - ValuableStone
   layers:
   - Default
   - TransparentFX
