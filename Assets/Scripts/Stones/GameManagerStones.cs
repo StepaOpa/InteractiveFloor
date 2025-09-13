@@ -1,6 +1,6 @@
 using UnityEngine;
-using UnityEngine.UI;
-using TMPro;
+using UnityEngine.UI; // Для работы с Image (радиальный бар)
+using TMPro;          // Для работы с TextMeshPro
 
 public class GameManagerStones : MonoBehaviour
 {
@@ -14,9 +14,11 @@ public class GameManagerStones : MonoBehaviour
     public TextMeshProUGUI timerText;
     public Image timerRadialBar;
 
-    [Header("Containers & Panels")]
-    public GameObject gameplayUiContainer; // Ссылка на наш контейнер "ForClear"
-    public EndGamePanelStones endGamePanel; // Ссылка на скрипт нашей панели
+    [Header("System & Controllers")]
+    public SpawnerStones spawner; // Ссылка на спаунер камней
+    public GameObject gameplayUiContainer;
+    public EndGamePanelStones endGamePanel;
+    public CoinRewardControllerStones coinRewardController;
 
     private float totalGameTime;
     private bool isGameActive = true;
@@ -86,18 +88,37 @@ public class GameManagerStones : MonoBehaviour
         timerRadialBar.fillAmount = gameTime / totalGameTime;
     }
 
-    // --- ОБНОВЛЕННЫЕ МЕТОДЫ ПОБЕДЫ И ПОРАЖЕНИЯ ---
     void WinGame()
     {
         isGameActive = false;
-        gameplayUiContainer.SetActive(false); // Прячем игровой интерфейс
-        endGamePanel.ShowPanel(true); // Показываем панель с сообщением о победе
+
+        // Останавливаем появление новых камней
+        if (spawner != null)
+        {
+            spawner.StopSpawning();
+        }
+
+        gameplayUiContainer.SetActive(false);
+        endGamePanel.ShowPanel(true);
+
+        // Запускаем анимацию победных монеток
+        if (coinRewardController != null)
+        {
+            StartCoroutine(coinRewardController.GetRewardSequenceCoroutine(targetCoins));
+        }
     }
 
     void LoseGame()
     {
         isGameActive = false;
-        gameplayUiContainer.SetActive(false); // Прячем игровой интерфейс
-        endGamePanel.ShowPanel(false); // Показываем панель с сообщением о поражении
+
+        // Останавливаем появление новых камней
+        if (spawner != null)
+        {
+            spawner.StopSpawning();
+        }
+
+        gameplayUiContainer.SetActive(false);
+        endGamePanel.ShowPanel(false);
     }
 }

@@ -338,13 +338,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 146610752}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2588191, y: 0, z: 0, w: 0.9659258}
-  m_LocalPosition: {x: 0, y: 3, z: -6}
+  m_LocalRotation: {x: 0.38268343, y: 0, z: 0, w: 0.92387956}
+  m_LocalPosition: {x: 0, y: 7, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 30, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 45, y: 0, z: 0}
 --- !u!114 &146610756
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -893,7 +893,7 @@ MonoBehaviour:
   stonePrefabs:
   - {fileID: 5308527581375733160, guid: 05f05db17603d9240b15164529adfbf2, type: 3}
   - {fileID: 3356987126378381010, guid: 344bcd54cc8cfe44b99fe6998c10bdde, type: 3}
-  spawnRate: 1
+  spawnRate: 2
   spawnAreaWidth: 15
 --- !u!4 &539798624
 Transform:
@@ -1146,13 +1146,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   coins: 0
-  targetCoins: 3
-  gameTime: 10
+  targetCoins: 10
+  gameTime: 60
   coinText: {fileID: 1844662500}
   timerText: {fileID: 1344326896}
   timerRadialBar: {fileID: 1555729839}
+  spawner: {fileID: 539798623}
   gameplayUiContainer: {fileID: 234603154}
   endGamePanel: {fileID: 1524909870}
+  coinRewardController: {fileID: 1526834014}
 --- !u!4 &1035344527
 Transform:
   m_ObjectHideFlags: 0
@@ -1690,6 +1692,56 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1524909868}
   m_CullTransparentMesh: 1
+--- !u!1 &1526834013
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1526834015}
+  - component: {fileID: 1526834014}
+  m_Layer: 0
+  m_Name: CoinRewardController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1526834014
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1526834013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c1883b08e53c7b4088b40edc990a9cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  coinPrefab: {fileID: 3770400561182047547, guid: 00f11ed5a26a39446949c201934885ec, type: 3}
+  coinContainer: {fileID: 1743207541}
+  coinSpacing: 1
+  startPositionOffset: {x: 0, y: 10, z: -10}
+  delayBetweenDrops: 0.1
+  delayBetweenSpins: 0.05
+--- !u!4 &1526834015
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1526834013}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.00002, y: 0, z: -10}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1555729839 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7647852677425847961, guid: 8c945c622ba0aef4795bf35f6512dfd5, type: 3}
@@ -1701,6 +1753,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1743207539
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1743207541}
+  m_Layer: 0
+  m_Name: CoinContainer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1743207541
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1743207539}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.8433915, y: 0, z: 0, w: 0.53729963}
+  m_LocalPosition: {x: 0, y: 4, z: -2.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 115, y: 0, z: 0}
 --- !u!1 &1844662498
 GameObject:
   m_ObjectHideFlags: 0
@@ -2266,5 +2349,7 @@ SceneRoots:
   - {fileID: 539798624}
   - {fileID: 472736410}
   - {fileID: 1035344527}
+  - {fileID: 1526834015}
+  - {fileID: 1743207541}
   - {fileID: 1919567049}
   - {fileID: 774304382}
