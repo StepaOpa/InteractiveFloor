@@ -1,28 +1,29 @@
 using UnityEngine;
-using UnityEngine.UI; // Обязательно добавляем для работы с компонентом Image
+using UnityEngine.UI;
 using TMPro;
-
 
 public class GameManagerStones : MonoBehaviour
 {
-    // --- ПЕРЕМЕННЫЕ ИГРОВОЙ ЛОГИКИ ---
     [Header("Game Logic")]
     public int coins = 0;
-    public int targetCoins = 10; // Цель по сбору монеток
-    public float gameTime = 30f; // Начальное время игры
+    public int targetCoins = 10;
+    public float gameTime = 30f;
 
-    // --- ССЫЛКИ НА UI ЭЛЕМЕНТЫ ---
     [Header("UI Elements")]
     public TextMeshProUGUI coinText;
     public TextMeshProUGUI timerText;
-    public Image timerRadialBar; // Новая ссылка на наш прогресс-бар
+    public Image timerRadialBar;
 
-    private float totalGameTime; // Переменная для хранения общего времени
+    [Header("Containers & Panels")]
+    public GameObject gameplayUiContainer; // Ссылка на наш контейнер "ForClear"
+    public EndGamePanelStones endGamePanel; // Ссылка на скрипт нашей панели
+
+    private float totalGameTime;
     private bool isGameActive = true;
 
     void Start()
     {
-        totalGameTime = gameTime; // Сохраняем начальное время
+        totalGameTime = gameTime;
         UpdateCoinText();
         UpdateTimeText();
     }
@@ -31,10 +32,9 @@ public class GameManagerStones : MonoBehaviour
     {
         if (!isGameActive) return;
 
-        // --- ЛОГИКА ТАЙМЕРА ---
         gameTime -= Time.deltaTime;
         UpdateTimeText();
-        UpdateRadialBar(); // Обновляем наш прогресс-бар каждый кадр
+        UpdateRadialBar();
 
         if (gameTime <= 0)
         {
@@ -44,7 +44,6 @@ public class GameManagerStones : MonoBehaviour
             LoseGame();
         }
 
-        // --- ЛОГИКА КЛИКОВ ---
         if (Input.GetMouseButtonDown(0))
         {
             HandleClick();
@@ -72,10 +71,8 @@ public class GameManagerStones : MonoBehaviour
         }
     }
 
-    // --- МЕТОДЫ ОБНОВЛЕНИЯ UI ---
     void UpdateCoinText()
     {
-        // Обновляем формат текста для счетчика монеток
         coinText.text = $"собрано ценных камней: {coins}/{targetCoins}";
     }
 
@@ -84,23 +81,23 @@ public class GameManagerStones : MonoBehaviour
         timerText.text = Mathf.Ceil(gameTime).ToString();
     }
 
-    // Новый метод для обновления радиального бара
     void UpdateRadialBar()
     {
-        // fillAmount - это значение от 0 до 1. Делим текущее время на общее.
         timerRadialBar.fillAmount = gameTime / totalGameTime;
     }
 
-    // --- МЕТОДЫ ПОБЕДЫ И ПОРАЖЕНИЯ ---
+    // --- ОБНОВЛЕННЫЕ МЕТОДЫ ПОБЕДЫ И ПОРАЖЕНИЯ ---
     void WinGame()
     {
         isGameActive = false;
-        Debug.Log("ВЫ ПОБЕДИЛИ!");
+        gameplayUiContainer.SetActive(false); // Прячем игровой интерфейс
+        endGamePanel.ShowPanel(true); // Показываем панель с сообщением о победе
     }
 
     void LoseGame()
     {
         isGameActive = false;
-        Debug.Log("ВЫ ПРОИГРАЛИ! Время вышло.");
+        gameplayUiContainer.SetActive(false); // Прячем игровой интерфейс
+        endGamePanel.ShowPanel(false); // Показываем панель с сообщением о поражении
     }
 }
