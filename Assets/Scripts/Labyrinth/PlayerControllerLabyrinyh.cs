@@ -3,6 +3,7 @@ using System.Collections;
 using System.Linq;
 using UnityEngine.UI;
 
+
 public class PlayerControllerLabyrinth : MonoBehaviour
 {
     [Header("Настройки движения")]
@@ -69,62 +70,71 @@ public class PlayerControllerLabyrinth : MonoBehaviour
         }
     }
 
+    // <<< ГЛАВНОЕ ИЗМЕНЕНИЕ И ИСПРАВЛЕНИЕ ЗДЕСЬ >>>
     private IEnumerator BurstMoveCoroutine(WaypointLabyrinth initialTarget)
     {
         isMoving = true;
-        WaypointLabyrinth nextTargetInLine = initialTarget;
+        WaypointLabyrinth targetForNextStep = initialTarget;
 
-        for (int i = 0; i < burstMoveLength; i++)
+        // Используем цикл 'for', но будем выходить из него досрочно с помощью 'break'.
+        for (int stepsMade = 0; stepsMade < burstMoveLength; stepsMade++)
         {
-            if (nextTargetInLine == null) break;
-
-            Vector3 startPosition = transform.position;
-            Vector3 endPosition = nextTargetInLine.transform.position;
-
-            if ((endPosition - startPosition).sqrMagnitude > 0.01f)
+            // Если на каком-то этапе пути не нашлось следующей точки, выходим.
+            if (targetForNextStep == null)
             {
-                CurrentMovementDirection = (endPosition - startPosition).normalized;
+                break;
             }
 
-            bool isNextStepDecisionPoint = nextTargetInLine.Type != WaypointType.Standard;
-            bool isLastStepOfBurst = i == burstMoveLength - 1;
-            bool isDeadEnd = nextTargetInLine.neighbors.Count(n => n != currentWaypoint) == 0;
-            bool shouldSlowDown = isNextStepDecisionPoint || isLastStepOfBurst || isDeadEnd;
-            float currentDuration = shouldSlowDown ? moveDurationPerPoint * slowdownFactor : moveDurationPerPoint;
+            // --- Шаг 1: Совершаем ОДНО перемещение ---
+            Vector3 startPosition = transform.position;
+            Vector3 endPosition = targetForNextStep.transform.position;
 
+            CurrentMovementDirection = (endPosition - startPosition).normalized;
+
+            // Определяем, нужно ли замедляться на этом шаге.
+            // Мы замедляемся, если следующая точка - перекресток, или это последний шаг в рывке.
+            bool isNextPointDecision = targetForNextStep.Type != WaypointType.Standard;
+            bool isLastPossibleStep = stepsMade == burstMoveLength - 1;
+            float duration = (isNextPointDecision || isLastPossibleStep) ? moveDurationPerPoint * slowdownFactor : moveDurationPerPoint;
+
+            // Движение
             float timeElapsed = 0;
-            while (timeElapsed < currentDuration)
+            while (timeElapsed < duration)
             {
-                transform.position = Vector3.Lerp(startPosition, endPosition, timeElapsed / currentDuration);
+                transform.position = Vector3.Lerp(startPosition, endPosition, timeElapsed / duration);
                 timeElapsed += Time.deltaTime;
                 yield return null;
             }
             transform.position = endPosition;
 
+            // --- Шаг 2: Обновляем состояние ПОСЛЕ перемещения ---
             previousWaypoint = currentWaypoint;
-            currentWaypoint = nextTargetInLine;
-
+            currentWaypoint = targetForNextStep;
             UpdateArrowVisuals();
 
-            // === ГЛАВНАЯ ЛОГИКА ОСТАНОВКИ ===
-            // Если мы встали на точку, которая НЕ является стандартным прямым участком...
+            // --- Шаг 3: Принимаем решение о СЛЕДУЮЩЕМ шаге ---
+            // Если точка, на которую мы ТОЛЬКО ЧТО ПРИБЫЛИ, является точкой принятия решения...
             if (currentWaypoint.Type != WaypointType.Standard)
             {
-                // ...то немедленно прекращаем дальнейшее скольжение.
+                // ...выводим сообщение в консоль и немедленно ПРЕРЫВАЕМ весь рывок.
+                Debug.Log($"<color=yellow>Движение остановлено! Прибыли на точку '{currentWaypoint.name}' типа '{currentWaypoint.Type}'.</color>");
                 break;
             }
 
-            nextTargetInLine = currentWaypoint.neighbors.FirstOrDefault(n => n != previousWaypoint);
+            // Если это была обычная точка, ищем следующую для продолжения рывка.
+            targetForNextStep = currentWaypoint.neighbors.FirstOrDefault(n => n != previousWaypoint);
         }
 
+        // --- Завершение ---
         isMoving = false;
 
-        // Если мы остановились на точке принятия решения, делаем паузу.
+        // Если мы остановились на перекрестке, делаем финальную паузу.
         if (currentWaypoint.Type != WaypointType.Standard)
         {
             yield return new WaitForSeconds(decisionPointDelay);
         }
     }
+
 
     private void UpdateArrowVisuals()
     {
@@ -142,6 +152,7 @@ public class PlayerControllerLabyrinth : MonoBehaviour
 
         foreach (var neighbor in currentWaypoint.neighbors)
         {
+            if (neighbor == null) continue;
             Vector3 neighborDirection = (neighbor.transform.position - currentWaypoint.transform.position).normalized;
             float dot = Vector3.Dot(desiredDirection, neighborDirection);
             if (dot > bestDot)
