@@ -4571,8 +4571,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba29a397f325201479c5d868cbb352b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 0.05
+  burstMoveLength: 3
+  moveDurationPerPoint: 0.3
+  slowdownFactor: 1.8
   startingWaypoint: {fileID: 517002387}
+  forwardArrowImage: {fileID: 1001459068}
+  backArrowImage: {fileID: 654878933}
+  leftArrowImage: {fileID: 1980905393}
+  rightArrowImage: {fileID: 176282713}
+  enabledArrowColor: {r: 1, g: 1, b: 1, a: 1}
+  disabledArrowColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.7}
+  decisionPointDelay: 0.8
   canMove: 1
 --- !u!135 &373149469
 SphereCollider:

@@ -1,3 +1,5 @@
+// FishAnimator.cs
+
 using UnityEngine;
 
 public class FishAnimator : MonoBehaviour
@@ -12,43 +14,44 @@ public class FishAnimator : MonoBehaviour
     [Tooltip("Скорость покачивания.")]
     public float bobSpeed = 2f;
 
-    // <<< ИЗМЕНЕНО: Ссылка на PlayerController вместо Rigidbody >>>
+    // Ссылка на главный контроллер, чтобы знать, куда он движется
     private PlayerControllerLabyrinth playerController;
+
+    // Переменные для уникальности анимации
     private Vector3 initialLocalPosition;
     private float randomOffset;
 
     void Start()
     {
-        // <<< ИЗМЕНЕНО: Ищем PlayerController в родительских объектах >>>
-        // Это сработает, так как рыбка (или ее pivot) находится внутри GroupFish, на которой висит контроллер
+        // Находим главный контроллер в родительских объектах
         playerController = GetComponentInParent<PlayerControllerLabyrinth>();
 
-        // Запоминаем начальную позицию и случайное смещение для уникальности анимации
+        // Запоминаем начальную позицию и случайное смещение
         initialLocalPosition = transform.localPosition;
         randomOffset = Random.Range(0f, 10f);
     }
 
     void Update()
     {
-        // Логика покачивания остается без изменений
+        // Эта часть отвечает за анимацию покачивания рыбки вверх-вниз
         float yOffset = Mathf.Sin((Time.time * bobSpeed) + randomOffset) * bobAmplitude;
         transform.localPosition = initialLocalPosition + new Vector3(0, yOffset, 0);
     }
 
+    // LateUpdate используется для поворотов, чтобы они происходили после всех расчетов движения
     void LateUpdate()
     {
-        // <<< ИЗМЕНЕНО: Логика поворота теперь основана на вводе игрока, а не на скорости >>>
         if (playerController != null)
         {
-            // Получаем вектор последнего ввода из контроллера
-            Vector3 movementDirection = playerController.LastInputDirection;
+            // Берем реальное направление движения из главного контроллера
+            Vector3 movementDirection = playerController.CurrentMovementDirection;
 
-            // Поворачиваем рыбку, если есть направление
+            // Если есть направление (вектор не нулевой)
             if (movementDirection.sqrMagnitude > 0.01f)
             {
                 // Создаем целевой поворот, который "смотрит" в сторону движения
                 Quaternion targetRotation = Quaternion.LookRotation(movementDirection);
-                // Плавно интерполируем текущий поворот к целевому
+                // Плавно интерполируем (поворачиваем) рыбку к этому целевому повороту
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
             }
         }

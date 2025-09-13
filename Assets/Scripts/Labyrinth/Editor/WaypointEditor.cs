@@ -1,32 +1,93 @@
-// WaypointEditor.cs
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.Linq;
 
-// Этот класс по-прежнему нужен для красивого отображения в инспекторе
+
+/// <summary>
+/// Кастомный редактор для компонента WaypointLabyrinth.
+/// Добавляет визуальные подсказки в инспекторе и в окне сцены.
+/// </summary>
 [CustomEditor(typeof(WaypointLabyrinth))]
 public class WaypointLabyrinthEditor : Editor
 {
+    /// <summary>
+    /// Рисует кастомный интерфейс в инспекторе.
+    /// </summary>
     public override void OnInspectorGUI()
     {
-        base.OnInspectorGUI();
+        // Сначала рисуем стандартный инспектор.
+        DrawDefaultInspector();
+
+        // Получаем наш компонент.
         WaypointLabyrinth waypoint = (WaypointLabyrinth)target;
-        if (waypoint.type == WaypointType.Intersection)
+
+        // <<< ИСПРАВЛЕНИЕ ЗДЕСЬ: Используем свойство .Type с большой буквы >>>
+        // Проверяем, совпадает ли реальное количество соседей с тем, что должно быть.
+        if (waypoint.neighbors.Count != waypoint.GetDesiredNeighborCount())
         {
-            // Убираем старый слайдер, чтобы не было путаницы
-            // waypoint.intersectionNeighborCount = EditorGUILayout.IntSlider("Neighbor Count", waypoint.intersectionNeighborCount, 3, 4);
+            // Формируем понятное сообщение об ошибке.
+            string message = $"Эта точка имеет тип '{waypoint.Type}' и должна иметь {waypoint.GetDesiredNeighborCount()} соседа(ей), но сейчас у нее {waypoint.neighbors.Count}.";
+
+            // Отображаем красивое поле с предупреждением.
+            EditorGUILayout.HelpBox(message, MessageType.Warning);
+        }
+    }
+
+    /// <summary>
+    /// Рисует графические элементы в окне сцены для удобства.
+    /// </summary>
+    [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected | GizmoType.Pickable)]
+    public static void OnDrawSceneGizmo(WaypointLabyrinth waypoint, GizmoType gizmoType)
+    {
+        // <<< ИСПРАВЛЕНИЕ ЗДЕСЬ: Используем свойство .Type с большой буквы >>>
+        // Устанавливаем цвет в зависимости от типа точки.
+        switch (waypoint.Type)
+        {
+            case WaypointType.Standard:
+                Gizmos.color = new Color(0, 1, 1, 0.7f); // Голубой
+                break;
+            case WaypointType.Intersection:
+                Gizmos.color = new Color(0, 1, 0, 0.7f); // Зеленый
+                break;
+            case WaypointType.DeadEnd:
+                Gizmos.color = new Color(1, 0, 0, 0.7f); // Красный
+                break;
+        }
+
+        // Рисуем на месте точки сферу, чтобы ее было видно.
+        Gizmos.DrawSphere(waypoint.transform.position, 0.2f);
+
+        // Рисуем линии к соседям.
+        Gizmos.color = new Color(1, 1, 0, 0.5f); // Желтый
+        if (waypoint.neighbors != null)
+        {
+            foreach (var neighbor in waypoint.neighbors)
+            {
+                if (neighbor != null)
+                {
+                    Gizmos.DrawLine(waypoint.transform.position, neighbor.transform.position);
+                }
+            }
         }
     }
 }
 
+
+/// <summary>
+/// Класс-инструмент для автоматического соединения точек лабиринта в редакторе.
+/// </summary>
 public class WaypointConnector
 {
     // НАСТРОЙТЕ ЭТО ЗНАЧЕНИЕ!
+    // Максимальное расстояние, на котором точки могут соединиться.
     private const float MaxConnectionDistance = 5f;
 
-    [MenuItem("Tools/Labyrinth/Connect Waypoints (Authoritative)")]
-    public static void AutoConnectWaypointsAuthoritative()
+    /// <summary>
+    /// Меню для запуска автоматического соединения вейпоинтов.
+    /// </summary>
+    [MenuItem("Tools/Labyrinth/Auto-Connect Waypoints")]
+    public static void AutoConnectWaypoints()
     {
         WaypointLabyrinth[] allWaypoints = GameObject.FindObjectsOfType<WaypointLabyrinth>();
 
@@ -34,37 +95,37 @@ public class WaypointConnector
         var candidates = new Dictionary<WaypointLabyrinth, List<WaypointLabyrinth>>();
         foreach (var wp in allWaypoints)
         {
-            wp.neighbors.Clear(); // Очищаем сразу
-            var neighbors = allWaypoints
+            wp.neighbors.Clear(); // Сразу очищаем все старые соединения.
+            var potentialNeighbors = allWaypoints
                 .Where(other => other != wp && Vector3.Distance(wp.transform.position, other.transform.position) <= MaxConnectionDistance)
                 .OrderBy(other => Vector3.Distance(wp.transform.position, other.transform.position))
                 .ToList();
-            candidates[wp] = neighbors;
+            candidates[wp] = potentialNeighbors;
         }
 
-        // --- ФАЗА 2: Принудительное соединение для точек-приказов ---
-        // Сначала обрабатываем самые важные точки: перекрестки и тупики
-        foreach (var wp in allWaypoints.Where(p => p.type == WaypointType.Intersection || p.type == WaypointType.DeadEnd))
+        // --- ФАЗА 2: Принудительное соединение для "командных" точек ---
+        // Сначала обрабатываем самые важные точки: перекрестки и тупики.
+        // <<< ИСПРАВЛЕНИЕ ЗДЕСЬ: Используем свойство .Type с большой буквы >>>
+        foreach (var wp in allWaypoints.Where(p => p.Type == WaypointType.Intersection || p.Type == WaypointType.DeadEnd))
         {
             int desiredCount = wp.GetDesiredNeighborCount();
             var bestCandidates = candidates[wp].Take(desiredCount);
 
             foreach (var candidate in bestCandidates)
             {
-                // ПРИНУДИТЕЛЬНОЕ ВЗАИМНОЕ СОЕДИНЕНИЕ
-                ConnectPair(wp, candidate);
+                ConnectPair(wp, candidate); // Принудительно соединяем их.
             }
         }
 
         // --- ФАЗА 3: Соединение оставшихся стандартных точек ---
-        // Они подбирают себе соседей из тех, у кого еще есть место
-        foreach (var wp in allWaypoints.Where(p => p.type == WaypointType.Standard))
+        // Они подбирают себе соседей из тех, у кого еще есть свободные "слоты".
+        // <<< ИСПРАВЛЕНИЕ ЗДЕСЬ: Используем свойство .Type с большой буквы >>>
+        foreach (var wp in allWaypoints.Where(p => p.Type == WaypointType.Standard))
         {
             int desiredCount = wp.GetDesiredNeighborCount();
-            // Ищем кандидатов, у которых еще не заполнен лимит соседей
             var availableCandidates = candidates[wp]
-                .Where(c => c.neighbors.Count < c.GetDesiredNeighborCount())
-                .Take(desiredCount - wp.neighbors.Count); // Берем только недостающее количество
+                .Where(c => c.neighbors.Count < c.GetDesiredNeighborCount()) // Ищем только тех, кто еще "не занят".
+                .Take(desiredCount - wp.neighbors.Count); // Берем только недостающее количество.
 
             foreach (var candidate in availableCandidates)
             {
@@ -72,18 +133,23 @@ public class WaypointConnector
             }
         }
 
-        // Сохраняем все изменения
+        // Сохраняем все изменения, чтобы Unity их не потерял.
         foreach (var wp in allWaypoints)
         {
             EditorUtility.SetDirty(wp);
         }
 
-        Debug.Log("Авторитетное соединение завершено! Приказы выполнены.");
+        Debug.Log($"Авто-соединение завершено! Обработано {allWaypoints.Length} точек.");
     }
 
+    /// <summary>
+    /// Создает двустороннюю связь между двумя точками.
+    /// </summary>
     private static void ConnectPair(WaypointLabyrinth a, WaypointLabyrinth b)
     {
-        // Проверяем, что они еще не соединены
+        if (a == null || b == null) return;
+
+        // Добавляем друг друга в соседи, если еще не добавлены.
         if (!a.neighbors.Contains(b)) a.neighbors.Add(b);
         if (!b.neighbors.Contains(a)) b.neighbors.Add(a);
     }

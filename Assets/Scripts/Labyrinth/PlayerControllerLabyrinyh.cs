@@ -1,130 +1,184 @@
-// PlayerControllerLabyrinth.cs
 using UnityEngine;
 using System.Collections;
-using System.Linq; // Нужно для удобного поиска
+using System.Linq;
+using UnityEngine.UI;
 
 public class PlayerControllerLabyrinth : MonoBehaviour
 {
     [Header("Настройки движения")]
-    public float moveSpeed = 5.0f;
+    [Tooltip("Максимальное количество точек, которые рыбки проходят за один 'рывок'")]
+    public int burstMoveLength = 3;
+    [Tooltip("Время в секундах на прохождение одного отрезка пути")]
+    public float moveDurationPerPoint = 0.3f;
+    [Tooltip("Насколько медленнее проходится последний отрезок пути (1 = так же, 2 = в два раза медленнее)")]
+    public float slowdownFactor = 1.8f;
+    [Tooltip("Стартовая точка, с которой начинается игра")]
     public WaypointLabyrinth startingWaypoint;
 
+    [Header("UI и Паузы")]
+    public Image forwardArrowImage;
+    public Image backArrowImage;
+    public Image leftArrowImage;
+    public Image rightArrowImage;
+    public Color enabledArrowColor = Color.white;
+    public Color disabledArrowColor = new Color(0.5f, 0.5f, 0.5f, 0.7f);
+    [Tooltip("Задержка в секундах на перекрестках и в тупиках")]
+    public float decisionPointDelay = 0.8f;
+
+    // Ссылки и состояние
     private GameManagerLabyrinth gameManager;
-    public bool canMove = true;
     private WaypointLabyrinth currentWaypoint;
+    private WaypointLabyrinth previousWaypoint;
     private bool isMoving = false;
-    private Vector3 moveDirection = Vector3.zero;
-    public Vector3 LastInputDirection { get; private set; } = Vector3.forward;
+    private Vector3 moveDirectionInput = Vector3.zero;
+    public Vector3 CurrentMovementDirection { get; private set; } = Vector3.forward;
+    private Coroutine movementCoroutine;
+    public bool canMove = true;
 
     void Start()
     {
         gameManager = FindObjectOfType<GameManagerLabyrinth>();
         currentWaypoint = startingWaypoint;
+        previousWaypoint = startingWaypoint;
         if (currentWaypoint != null)
         {
             transform.position = currentWaypoint.transform.position;
-        }
-        else
-        {
-            Debug.LogError("Стартовая точка не назначена!", this.gameObject);
-            canMove = false;
+            UpdateArrowVisuals();
         }
     }
 
     void Update()
     {
-        if (!canMove || isMoving) return;
-        Vector3 inputDirection = GetInputDirection();
-        if (inputDirection != Vector3.zero)
+        if (!canMove) return;
+
+        ReadInput();
+        if (!isMoving && moveDirectionInput != Vector3.zero)
         {
-            AttemptMove(inputDirection);
+            AttemptMove(moveDirectionInput);
+            moveDirectionInput = Vector3.zero;
         }
     }
 
-    private void AttemptMove(Vector3 worldInputDirection)
+    private void AttemptMove(Vector3 worldDirection)
     {
-        if (currentWaypoint.neighbors.Count == 0) return; // Некуда идти
+        WaypointLabyrinth target = FindNeighborInDirection(worldDirection);
+        if (target != null)
+        {
+            if (movementCoroutine != null) StopCoroutine(movementCoroutine);
+            movementCoroutine = StartCoroutine(BurstMoveCoroutine(target));
+        }
+    }
 
-        // --- НОВАЯ СУПЕР-ЛОГИКА ---
-        // Мы ищем соседа, который находится в направлении, наиболее близком к нашему вводу.
+    private IEnumerator BurstMoveCoroutine(WaypointLabyrinth initialTarget)
+    {
+        isMoving = true;
+        WaypointLabyrinth nextTargetInLine = initialTarget;
 
-        WaypointLabyrinth bestTarget = null;
-        float bestDot = -1; // Начинаем с наихудшего значения
+        for (int i = 0; i < burstMoveLength; i++)
+        {
+            if (nextTargetInLine == null) break;
+
+            Vector3 startPosition = transform.position;
+            Vector3 endPosition = nextTargetInLine.transform.position;
+
+            if ((endPosition - startPosition).sqrMagnitude > 0.01f)
+            {
+                CurrentMovementDirection = (endPosition - startPosition).normalized;
+            }
+
+            bool isNextStepDecisionPoint = nextTargetInLine.Type != WaypointType.Standard;
+            bool isLastStepOfBurst = i == burstMoveLength - 1;
+            bool isDeadEnd = nextTargetInLine.neighbors.Count(n => n != currentWaypoint) == 0;
+            bool shouldSlowDown = isNextStepDecisionPoint || isLastStepOfBurst || isDeadEnd;
+            float currentDuration = shouldSlowDown ? moveDurationPerPoint * slowdownFactor : moveDurationPerPoint;
+
+            float timeElapsed = 0;
+            while (timeElapsed < currentDuration)
+            {
+                transform.position = Vector3.Lerp(startPosition, endPosition, timeElapsed / currentDuration);
+                timeElapsed += Time.deltaTime;
+                yield return null;
+            }
+            transform.position = endPosition;
+
+            previousWaypoint = currentWaypoint;
+            currentWaypoint = nextTargetInLine;
+
+            UpdateArrowVisuals();
+
+            // === ГЛАВНАЯ ЛОГИКА ОСТАНОВКИ ===
+            // Если мы встали на точку, которая НЕ является стандартным прямым участком...
+            if (currentWaypoint.Type != WaypointType.Standard)
+            {
+                // ...то немедленно прекращаем дальнейшее скольжение.
+                break;
+            }
+
+            nextTargetInLine = currentWaypoint.neighbors.FirstOrDefault(n => n != previousWaypoint);
+        }
+
+        isMoving = false;
+
+        // Если мы остановились на точке принятия решения, делаем паузу.
+        if (currentWaypoint.Type != WaypointType.Standard)
+        {
+            yield return new WaitForSeconds(decisionPointDelay);
+        }
+    }
+
+    private void UpdateArrowVisuals()
+    {
+        SetArrowState(forwardArrowImage, FindNeighborInDirection(Vector3.forward) != null);
+        SetArrowState(backArrowImage, FindNeighborInDirection(Vector3.back) != null);
+        SetArrowState(leftArrowImage, FindNeighborInDirection(Vector3.left) != null);
+        SetArrowState(rightArrowImage, FindNeighborInDirection(Vector3.right) != null);
+    }
+
+    private WaypointLabyrinth FindNeighborInDirection(Vector3 desiredDirection)
+    {
+        if (currentWaypoint == null) return null;
+        WaypointLabyrinth bestMatch = null;
+        float bestDot = 0.7f;
 
         foreach (var neighbor in currentWaypoint.neighbors)
         {
-            // Находим вектор направления от нас к соседу
-            Vector3 directionToNeighbor = (neighbor.transform.position - transform.position).normalized;
-
-            // Вычисляем, насколько это направление "похоже" на то, что нажал игрок
-            float dot = Vector3.Dot(worldInputDirection, directionToNeighbor);
-
-            // Если это направление "похоже" больше, чем все предыдущие, запоминаем его
+            Vector3 neighborDirection = (neighbor.transform.position - currentWaypoint.transform.position).normalized;
+            float dot = Vector3.Dot(desiredDirection, neighborDirection);
             if (dot > bestDot)
             {
                 bestDot = dot;
-                bestTarget = neighbor;
+                bestMatch = neighbor;
             }
         }
-
-        // Если мы нашли подходящую цель (dot > 0.7 означает, что угол меньше ~45 градусов)
-        if (bestTarget != null && bestDot > 0.7f)
-        {
-            LastInputDirection = worldInputDirection;
-            StartCoroutine(MoveToTarget(bestTarget));
-        }
+        return bestMatch;
     }
 
-    // Остальная часть скрипта остается практически без изменений
-    private IEnumerator MoveToTarget(WaypointLabyrinth destination)
+    private void SetArrowState(Image arrow, bool isActive)
     {
-        isMoving = true;
-        Vector3 startPosition = transform.position;
-        Vector3 endPosition = destination.transform.position;
-        float journeyLength = Vector3.Distance(startPosition, endPosition);
-        if (journeyLength <= 0) { isMoving = false; yield break; }
-        float startTime = Time.time;
-
-        while (transform.position != endPosition)
-        {
-            float distCovered = (Time.time - startTime) * moveSpeed;
-            float fractionOfJourney = distCovered / journeyLength;
-            transform.position = Vector3.Lerp(startPosition, endPosition, fractionOfJourney);
-            yield return null;
-        }
-        currentWaypoint = destination;
-        isMoving = false;
+        if (arrow != null) arrow.color = isActive ? enabledArrowColor : disabledArrowColor;
     }
 
-    private Vector3 GetInputDirection()
+    private void ReadInput()
     {
-        if (Input.GetKeyDown(KeyCode.W)) return Vector3.forward;
-        if (Input.GetKeyDown(KeyCode.S)) return Vector3.back;
-        if (Input.GetKeyDown(KeyCode.A)) return Vector3.left;
-        if (Input.GetKeyDown(KeyCode.D)) return Vector3.right;
-
-        if (moveDirection.magnitude > 0)
-        {
-            Vector3 direction = moveDirection;
-            moveDirection = Vector3.zero;
-            return direction;
-        }
-        return Vector3.zero;
+        if (Input.GetKeyDown(KeyCode.W)) moveDirectionInput = Vector3.forward;
+        if (Input.GetKeyDown(KeyCode.S)) moveDirectionInput = Vector3.back;
+        if (Input.GetKeyDown(KeyCode.A)) moveDirectionInput = Vector3.left;
+        if (Input.GetKeyDown(KeyCode.D)) moveDirectionInput = Vector3.right;
     }
+
+    public void OnPointerDownForward() { moveDirectionInput = Vector3.forward; }
+    public void OnPointerDownBack() { moveDirectionInput = Vector3.back; }
+    public void OnPointerDownLeft() { moveDirectionInput = Vector3.left; }
+    public void OnPointerDownRight() { moveDirectionInput = Vector3.right; }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("WinZone")) { gameManager.WinGame(); }
-        if (other.CompareTag("Trap")) { gameManager.LoseGame("Вы попались в ловушку!"); }
+        if (other.CompareTag("WinZone")) gameManager.WinGame();
+        if (other.CompareTag("Trap")) gameManager.LoseGame("Вы попались в ловушку!");
         if (other.CompareTag("Net"))
         {
             gameManager.CatchOneFish(other.transform);
             other.enabled = false;
         }
     }
-
-    public void OnPointerDownForward() { moveDirection = Vector3.forward; }
-    public void OnPointerDownBack() { moveDirection = Vector3.back; }
-    public void OnPointerDownLeft() { moveDirection = Vector3.left; }
-    public void OnPointerDownRight() { moveDirection = Vector3.right; }
 }
