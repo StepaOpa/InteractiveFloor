@@ -36,7 +36,7 @@ public class WaypointLabyrinth : MonoBehaviour
 
 
     [Tooltip("ДЛЯ ПЕРЕКРЕСТКОВ: Укажите точное количество выходов (3 или 4).")]
-    [Range(3, 4)] // Ограничиваем ввод, чтобы избежать ошибок
+    [Range(3, 4)]
     [SerializeField]
     private int _intersectionNeighborCount = 3;
 
@@ -49,7 +49,6 @@ public class WaypointLabyrinth : MonoBehaviour
     /// <summary>
     /// Возвращает ожидаемое количество соседей для точки в зависимости от ее типа.
     /// </summary>
-    /// <returns>Целое число (1, 2, 3 или 4).</returns>
     public int GetDesiredNeighborCount()
     {
         switch (_type)
@@ -64,8 +63,53 @@ public class WaypointLabyrinth : MonoBehaviour
                 return 1;
 
             default:
-                // На случай, если появится новый тип, возвращаем стандартное значение
                 return 2;
+        }
+    }
+
+    // <<< ВОТ ОНО, ГЛАВНОЕ ДОБАВЛЕНИЕ >>>
+    /// <summary>
+    /// Этот специальный метод Unity вызывается автоматически для отрисовки графики в окне редактора.
+    /// Он не работает в самой игре, только во вьюпорте.
+    /// </summary>
+    private void OnDrawGizmos()
+    {
+        // --- Шаг 1: Рисуем саму точку ---
+
+        // Устанавливаем цвет в зависимости от типа точки
+        switch (Type)
+        {
+            case WaypointType.Standard:
+                Gizmos.color = new Color(0, 0.8f, 1f, 0.7f); // Ярко-голубой для обычных точек
+                break;
+            case WaypointType.Intersection:
+                Gizmos.color = new Color(0, 1f, 0, 0.7f);   // Зеленый для перекрестков
+                break;
+            case WaypointType.DeadEnd:
+                Gizmos.color = new Color(1f, 0, 0, 0.7f);     // Красный для тупиков
+                break;
+        }
+
+        // Рисуем на месте точки полупрозрачную сферу, чтобы ее было хорошо видно.
+        Gizmos.DrawSphere(transform.position, 0.05f);
+
+        // --- Шаг 2: Рисуем линии к соседям ---
+
+        // Устанавливаем желтый цвет для линий
+        Gizmos.color = new Color(1f, 0.9f, 0, 0.5f);
+
+        // Проходим по списку всех соседей
+        if (neighbors != null)
+        {
+            foreach (var neighbor in neighbors)
+            {
+                // Если сосед не пустой (на случай, если вы случайно оставили пустое поле в списке)
+                if (neighbor != null)
+                {
+                    // Рисуем линию от этой точки к соседу
+                    Gizmos.DrawLine(transform.position, neighbor.transform.position);
+                }
+            }
         }
     }
 }

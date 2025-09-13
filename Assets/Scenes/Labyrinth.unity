@@ -4582,6 +4582,7 @@ MonoBehaviour:
   enabledArrowColor: {r: 1, g: 1, b: 1, a: 1}
   disabledArrowColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.7}
   decisionPointDelay: 0.8
+  directionMatchThreshold: 0.5
   canMove: 1
 --- !u!135 &373149469
 SphereCollider:
@@ -5985,7 +5986,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d7f971df39318540b15967995bb12d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _type: 0
+  _type: 2
   _intersectionNeighborCount: 3
   neighbors:
   - {fileID: 1461621088}
@@ -6141,7 +6142,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d7f971df39318540b15967995bb12d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _type: 0
+  _type: 2
   _intersectionNeighborCount: 3
   neighbors:
   - {fileID: 1686032098}
@@ -15472,7 +15473,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d7f971df39318540b15967995bb12d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _type: 0
+  _type: 2
   _intersectionNeighborCount: 3
   neighbors:
   - {fileID: 1221997685}
