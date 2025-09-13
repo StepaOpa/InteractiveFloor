@@ -541,9 +541,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u041F\u0440\u043E\u0439\u0434\u0435\u043D\u043E \u0443\u0440\u043E\u0432\u043D\u0435\u0439:
-    1\n\u0417\u0430\u0440\u0430\u0431\u043E\u0442\u0430\u043D\u043E \u043C\u043E\u043D\u0435\u0442:
-    10"
+  m_text: "\u0412\u0441\u0435 \u0446\u0435\u043D\u043D\u044B\u0435 \u043A\u0430\u043C\u043D\u0438
+    \u0441\u043E\u0431\u0440\u0430\u043D\u044B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -570,8 +569,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 50
+  m_fontSizeBase: 50
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1723,7 +1722,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   coinPrefab: {fileID: 3770400561182047547, guid: 00f11ed5a26a39446949c201934885ec, type: 3}
   coinContainer: {fileID: 1743207541}
-  coinSpacing: 1
+  coinSpacing: 0.9
   startPositionOffset: {x: 0, y: 10, z: -10}
   delayBetweenDrops: 0.1
   delayBetweenSpins: 0.05

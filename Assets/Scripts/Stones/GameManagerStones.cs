@@ -75,7 +75,7 @@ public class GameManagerStones : MonoBehaviour
 
     void UpdateCoinText()
     {
-        coinText.text = $"собрано ценных камней: {coins}/{targetCoins}";
+        coinText.text = $"Собрано ценных камней: {coins}/{targetCoins}";
     }
 
     void UpdateTimeText()

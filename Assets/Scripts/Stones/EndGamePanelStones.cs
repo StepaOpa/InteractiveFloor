@@ -17,7 +17,7 @@ public class EndGamePanelStones : MonoBehaviour
         if (isVictory)
         {
             titleText.text = "Победа!";
-            detailsText.text = "Все камни собраны";
+            detailsText.text = "Все ценные камни собраны";
         }
         else
         {
