@@ -24,6 +24,11 @@ public class InspectionUI : MonoBehaviour
     private ParticleSystem dustParticleSystem;
     public static InspectionUI Instance { get; private set; }
 
+    // --- НАШИ ИЗМЕНЕНИЯ ЗДЕСЬ ---
+    private float lastClickTime = -1f; // Время последнего клика. -1f чтобы первый клик всегда срабатывал.
+    private const float clickCooldown = 1.0f; // Задержка в 1 секунду.
+    // ----------------------------
+
     void Awake()
     {
         if (Instance == null) { Instance = this; }
@@ -36,6 +41,7 @@ public class InspectionUI : MonoBehaviour
         HideInspectionUI();
     }
 
+    // Возвращаемся к вашему оригинальному методу инициализации
     private void InitializeButtons()
     {
         if (upButton != null) upButton.onClick.AddListener(() => RotateCurrentItem("up"));
@@ -45,6 +51,26 @@ public class InspectionUI : MonoBehaviour
         if (collectButton != null) collectButton.onClick.AddListener(CollectCurrentItem);
         if (cancelButton != null) cancelButton.onClick.AddListener(CancelInspection);
     }
+
+    // --- И ЗДЕСЬ МЕНЯЕМ ЛОГИКУ ---
+    private void RotateCurrentItem(string direction)
+    {
+        // Проверяем, прошло ли достаточно времени с последнего клика
+        if (Time.time - lastClickTime < clickCooldown)
+        {
+            return; // Если не прошло, выходим из функции
+        }
+
+        if (currentItem != null && currentItem.IsBeingInspected())
+        {
+            // Обновляем время последнего клика на текущее
+            lastClickTime = Time.time;
+
+            // Выполняем вращение
+            currentItem.RotateByButton(direction);
+        }
+    }
+    // ----------------------------
 
     public void ShowInspectionUI(CollectableItem item)
     {
@@ -98,14 +124,6 @@ public class InspectionUI : MonoBehaviour
             Destroy(currentDustEffectInstance);
             currentDustEffectInstance = null;
             dustParticleSystem = null;
-        }
-    }
-
-    private void RotateCurrentItem(string direction)
-    {
-        if (currentItem != null && currentItem.IsBeingInspected())
-        {
-            currentItem.RotateByButton(direction);
         }
     }
 
