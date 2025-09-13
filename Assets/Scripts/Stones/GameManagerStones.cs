@@ -61,6 +61,10 @@ public class GameManagerStones : MonoBehaviour
         {
             if (hit.collider.CompareTag("ValuableStone"))
             {
+                // <<< ДОБАВЬТЕ ЭТУ СТРОКУ >>>
+                // Обращаемся к нашему Sound Manager и просим проиграть звук с именем "CollectStone"
+                SoundManagerStones.instance.PlaySound("CollectStone");
+
                 coins++;
                 UpdateCoinText();
                 Destroy(hit.collider.gameObject);

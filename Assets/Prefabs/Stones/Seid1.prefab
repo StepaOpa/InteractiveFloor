@@ -64,6 +64,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Prefab_Forest_black_cherry_04 (6)
       objectReference: {fileID: 0}
+    - target: {fileID: 5305256077440059215, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6183597123684911533, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7313425398913095300, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -82,9 +94,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1405800669205787968}
     m_Modifications:
+    - target: {fileID: 1103686798133468, guid: 3e2f406ab51b0ed4c9b4084752267e5f, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1205459156594368, guid: 3e2f406ab51b0ed4c9b4084752267e5f, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     - target: {fileID: 1268013635547018, guid: 3e2f406ab51b0ed4c9b4084752267e5f, type: 3}
       propertyPath: m_Name
       value: VS_Fir_07_Forest_cheap
+      objectReference: {fileID: 0}
+    - target: {fileID: 1268013635547018, guid: 3e2f406ab51b0ed4c9b4084752267e5f, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1887860794384876, guid: 3e2f406ab51b0ed4c9b4084752267e5f, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 4286980411060574, guid: 3e2f406ab51b0ed4c9b4084752267e5f, type: 3}
       propertyPath: m_LocalScale.x
@@ -212,6 +240,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Prefab_Forest_black_cherry_04 (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 5305256077440059215, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6183597123684911533, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7313425398913095300, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -286,6 +326,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Prefab_Forest_black_cherry_04 (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 5305256077440059215, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6183597123684911533, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7313425398913095300, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -359,6 +411,10 @@ PrefabInstance:
     - target: {fileID: 91063913129398454, guid: d97e5a32d0fecff49905a21d3c0d484d, type: 3}
       propertyPath: m_Name
       value: prefab_beech_plant_00
+      objectReference: {fileID: 0}
+    - target: {fileID: 91063913129398454, guid: d97e5a32d0fecff49905a21d3c0d484d, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -449,6 +505,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: c9222c98f4fa64d1cb26f7e22b5d9aac, type: 3}
       propertyPath: m_Name
       value: Seid1
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c9222c98f4fa64d1cb26f7e22b5d9aac, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: c9222c98f4fa64d1cb26f7e22b5d9aac, type: 3}
       propertyPath: m_TagString
@@ -640,6 +700,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Prefab_Forest_black_cherry_04
       objectReference: {fileID: 0}
+    - target: {fileID: 5305256077440059215, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6183597123684911533, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7313425398913095300, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -661,6 +733,10 @@ PrefabInstance:
     - target: {fileID: 1141479743118927529, guid: 75204a7297d010041851c9963ef2ea5f, type: 3}
       propertyPath: m_Name
       value: prefab_beech_plant_02
+      objectReference: {fileID: 0}
+    - target: {fileID: 1141479743118927529, guid: 75204a7297d010041851c9963ef2ea5f, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 1141479743119424137, guid: 75204a7297d010041851c9963ef2ea5f, type: 3}
       propertyPath: m_LocalScale.x
@@ -721,6 +797,14 @@ PrefabInstance:
     - target: {fileID: 2448658378034652125, guid: 75204a7297d010041851c9963ef2ea5f, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3854938273946587382, guid: 75204a7297d010041851c9963ef2ea5f, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6015774026739123997, guid: 75204a7297d010041851c9963ef2ea5f, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -796,6 +880,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Prefab_Forest_black_cherry_04 (5)
       objectReference: {fileID: 0}
+    - target: {fileID: 5305256077440059215, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6183597123684911533, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7313425398913095300, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -870,6 +966,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: prefab_beech_plant_00 (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 91063913129398454, guid: d97e5a32d0fecff49905a21d3c0d484d, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -891,6 +991,10 @@ PrefabInstance:
     - target: {fileID: 1141479743118927529, guid: 75204a7297d010041851c9963ef2ea5f, type: 3}
       propertyPath: m_Name
       value: prefab_beech_plant_02 (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 1141479743118927529, guid: 75204a7297d010041851c9963ef2ea5f, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 1141479743119424137, guid: 75204a7297d010041851c9963ef2ea5f, type: 3}
       propertyPath: m_LocalScale.x
@@ -951,6 +1055,14 @@ PrefabInstance:
     - target: {fileID: 2448658378034652125, guid: 75204a7297d010041851c9963ef2ea5f, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3854938273946587382, guid: 75204a7297d010041851c9963ef2ea5f, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6015774026739123997, guid: 75204a7297d010041851c9963ef2ea5f, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1026,6 +1138,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Prefab_Forest_black_cherry_04 (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 5305256077440059215, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6183597123684911533, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7313425398913095300, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1099,6 +1223,18 @@ PrefabInstance:
     - target: {fileID: 5305256077440059215, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
       propertyPath: m_Name
       value: Prefab_Forest_black_cherry_04 (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 5305256077440059215, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6183597123684911533, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 7313425398913095300, guid: 283a7fd49a90e274f9550368cf6863c0, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
