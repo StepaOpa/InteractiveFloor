@@ -11,29 +11,33 @@ public class GameEndPanelPetroglyphs : MonoBehaviour
     [SerializeField] private Button restartButton;
     [SerializeField] private Button mainMenuButton;
 
-    // --- НОВАЯ СТРОКА ---
     [Header("Система наград")]
-    [SerializeField] private CoinRewardController coinRewardController; // Ссылка на контроллер монеток
+    [SerializeField] private CoinRewardController coinRewardController;
+
+    // НОВОЕ: Переменная для хранения награды за раунд.
+    private int coinsEarnedThisRound = 0;
 
     void Start()
     {
+        // Убедимся, что Time.timeScale сброшен на всякий случай
+        Time.timeScale = 1f;
         restartButton.onClick.AddListener(OnRestartButtonClick);
         mainMenuButton.onClick.AddListener(OnMainMenuButtonClick);
     }
 
-    // --- МЕТОД ИЗМЕНЕН ---
-    // Добавили параметр coinsAwarded для передачи количества монет
+    // Метод ИЗМЕНЕН: теперь он сохраняет полученную награду.
     public void ShowPanel(bool isWin, int foundCount, int totalCount, int coinsAwarded)
     {
         gameObject.SetActive(true);
+
+        // НОВОЕ: Сохраняем полученное количество монет в нашу "память".
+        this.coinsEarnedThisRound = coinsAwarded;
 
         if (isWin)
         {
             titleText.text = "Победа!";
             detailsText.text = $"Вы нашли все рисунки!\nЗаработано монеток: {coinsAwarded}";
 
-            // --- НОВАЯ СТРОКА ---
-            // Запускаем анимацию падения монеток
             if (coinRewardController != null)
             {
                 coinRewardController.StartRewardSequence(coinsAwarded);
@@ -48,12 +52,22 @@ public class GameEndPanelPetroglyphs : MonoBehaviour
 
     private void OnRestartButtonClick()
     {
+        // Сбрасываем Time.timeScale перед перезагрузкой
+        Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
+    // Метод ИЗМЕНЕН: теперь он выполняет всю нужную логику.
     private void OnMainMenuButtonClick()
     {
-        Debug.Log("Переход в главное меню (не реализовано)");
+        // Сбрасываем Time.timeScale перед переходом
+        Time.timeScale = 1f;
+
+        // 1. Используем сохраненное значение для начисления монет
+        CoinManager.AddCoins(coinsEarnedThisRound);
+
+        // 2. Переходим в главное меню
+        SceneManager.LoadScene("MainMenu");
     }
 
     private void OnDestroy()

@@ -3193,9 +3193,9 @@ MonoBehaviour:
   startScale: 0.4
   delayAfterFinding: 0.5
   allPetroglyphSprites:
+  - {fileID: 21300000, guid: 2e90b0847ad9d2843858608efa13b6e1, type: 3}
   - {fileID: 21300000, guid: cd17736c84bb9554db9a0b7f2493da7b, type: 3}
   - {fileID: 21300000, guid: 18285821144d0b943ace2175f82cdb0d, type: 3}
-  - {fileID: 21300000, guid: 2e90b0847ad9d2843858608efa13b6e1, type: 3}
   - {fileID: 21300000, guid: 80cb8672c2c375e42a26e705707f263d, type: 3}
   - {fileID: 21300000, guid: 840ad767f63a63b4788d7bde9818284b, type: 3}
   - {fileID: 21300000, guid: b2a466730f04eb24288ebced49ddd5c9, type: 3}
