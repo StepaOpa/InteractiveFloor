@@ -1,19 +1,38 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // ќб€зательно подключите это пространство имен дл€ работы со сценами
+using UnityEngine.SceneManagement;
+using TMPro; // ќЅя«ј“≈Ћ№Ќќ добавьте эту строку дл€ работы с TextMeshPro
 
 
 public class MainMenuController : MonoBehaviour
 {
-    // Ётот метод будет загружать сцену по еЄ имени
+    // —оздаем публичное поле, куда мы перетащим наш текстовый объект
+    public TextMeshProUGUI coinsText;
+
+    // Ётот метод вызываетс€ один раз при запуске сцены
+    void Start()
+    {
+        UpdateCoinsDisplay();
+    }
+
+    // ћетод дл€ обновлени€ текста с монетами
+    void UpdateCoinsDisplay()
+    {
+        if (coinsText != null)
+        {
+            // ќбращаемс€ к нашему CoinManager, получаем монеты и выводим на экран
+            coinsText.text = "ћонеты: " + CoinManager.GetCoins();
+        }
+    }
+
+    // ¬аши методы дл€ загрузки сцен и выхода из игры остаютс€ без изменений
     public void LoadScene(string sceneName)
     {
         SceneManager.LoadScene(sceneName);
     }
 
-    // Ётот метод можно будет использовать дл€ кнопки выхода из игры
     public void QuitGame()
     {
-        Debug.Log("Quitting game..."); // Ёто сообщение по€витс€ в консоли Unity
+        Debug.Log("Quitting game...");
         Application.Quit();
     }
 }

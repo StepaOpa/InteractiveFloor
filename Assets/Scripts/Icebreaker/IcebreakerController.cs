@@ -19,7 +19,6 @@ public class IcebreakerController : MonoBehaviour
 
     [Header("UI References")]
     [SerializeField] private GameObject endGameScreen;
-    // НОВОЕ ПОЛЕ ДЛЯ КОНТЕЙНЕРА
     [Tooltip("Объект-контейнер, в котором лежит UI, который нужно скрыть в конце игры (здоровье, дистанция и т.д.).")]
     [SerializeField] private GameObject inGameUiContainer;
     [SerializeField] private TextMeshProUGUI titleText;
@@ -27,6 +26,8 @@ public class IcebreakerController : MonoBehaviour
     [SerializeField] private CoinControllerIcebreaker coinRewardController;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private TextMeshProUGUI distanceText;
+    // НОВОЕ: Добавляем ссылку на GameManager, чтобы передать ему результат
+    [SerializeField] private GameManagerIcebreaker gameManager;
 
     [Header("Animation")]
     [Tooltip("Перетащи сюда объект CameraRig")]
@@ -50,7 +51,6 @@ public class IcebreakerController : MonoBehaviour
         Time.timeScale = 1f;
         endGameScreen.SetActive(false);
 
-        // Включаем игровой UI на старте, на случай если он был выключен в редакторе
         if (inGameUiContainer != null)
         {
             inGameUiContainer.SetActive(true);
@@ -120,9 +120,6 @@ public class IcebreakerController : MonoBehaviour
 
     private IEnumerator EndGameSequence(bool isVictory)
     {
-        // === ЧАСТЬ 1: Выключаем UI и запускаем эффекты ===
-
-        // НОВАЯ СТРОКА: Выключаем игровой интерфейс
         if (inGameUiContainer != null)
         {
             inGameUiContainer.SetActive(false);
@@ -137,7 +134,6 @@ public class IcebreakerController : MonoBehaviour
 
         yield return StartCoroutine(ReturnToCenter());
 
-        // === ЧАСТЬ 2: Анимация камеры и подготовка UI ===
         Time.timeScale = 0f;
         endGameScreen.SetActive(false);
 
@@ -148,12 +144,21 @@ public class IcebreakerController : MonoBehaviour
             cameraAnimator.SetTrigger("StartEndAnimation");
         }
 
-        // === ЧАСТЬ 3: Пауза ===
         yield return new WaitForSecondsRealtime(endScreenDelay);
 
-        // === ЧАСТЬ 4: Отображение экрана конца игры ===
         endGameScreen.SetActive(true);
         int coinsToAward = health * 2;
+
+        // НОВОЕ: Передаем количество заработанных монет в GameManager
+        if (gameManager != null)
+        {
+            gameManager.SetEarnedCoins(coinsToAward);
+        }
+        else
+        {
+            Debug.LogWarning("GameManager не назначен в инспекторе IcebreakerController! Монеты не будут сохранены.");
+        }
+
 
         if (isVictory)
         {

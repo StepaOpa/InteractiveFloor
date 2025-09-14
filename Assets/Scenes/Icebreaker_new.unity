@@ -2212,7 +2212,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1880751758}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1934293666}
+        m_TargetAssemblyTypeName: GameManagerIcebreaker, Assembly-CSharp
+        m_MethodName: ReturnToMainMenu
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1880751758
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2994,12 +3006,16 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1960568872}
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
+      propertyPath: gameManager
+      value: 
+      objectReference: {fileID: 1934293666}
+    - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: maxRotation
       value: 15
       objectReference: {fileID: 0}
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: winDistance
-      value: 100
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: distanceText
