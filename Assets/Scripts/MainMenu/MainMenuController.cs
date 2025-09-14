@@ -2,22 +2,17 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 
-
 public class MainMenuController : MonoBehaviour
 {
     public TextMeshProUGUI coinsText;
 
-    // Метод Start() теперь главный по сбросу счета
     void Start()
     {
-        // ПРОВЕРЯЕМ ФЛАГ: Если нам дали сигнал сбросить счет...
         if (MainMenuLevelManager.shouldResetScoreOnLoad)
         {
-            CoinManager.ResetCoins(); // ...сбрасываем монеты...
-            MainMenuLevelManager.shouldResetScoreOnLoad = false; // ...и опускаем флаг, чтобы не сбросить счет еще раз.
+            CoinManager.ResetCoins();
+            MainMenuLevelManager.shouldResetScoreOnLoad = false;
         }
-
-        // А уже после всех проверок обновляем текст на экране
         UpdateCoinsDisplay();
     }
 
@@ -29,10 +24,24 @@ public class MainMenuController : MonoBehaviour
         }
     }
 
-    // Кнопка "Начать игру" теперь НЕ сбрасывает счет. Она просто запускает игру.
+    // Этот метод для большой кнопки "Начать игру"
     public void StartGame()
     {
+        // Сначала сбрасываем счет
+        CoinManager.ResetCoins();
+        UpdateCoinsDisplay();
+        // Потом запускаем самый первый уровень
         MainMenuLevelManager.StartFirstLevel();
+    }
+
+    // НОВЫЙ МЕТОД: для маленьких кнопок выбора уровня
+    public void StartLevel(int levelIndex)
+    {
+        // Тоже сбрасываем счет
+        CoinManager.ResetCoins();
+        UpdateCoinsDisplay();
+        // И запускаем игру с ВЫБРАННОГО уровня
+        MainMenuLevelManager.StartSpecificLevel(levelIndex);
     }
 
     public void QuitGame()
