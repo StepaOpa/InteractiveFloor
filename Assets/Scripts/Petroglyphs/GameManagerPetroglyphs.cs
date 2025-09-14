@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 
-
 public class GameManagerPetroglyphs : MonoBehaviour
 {
     [Header("UI Elements")]
@@ -20,7 +19,7 @@ public class GameManagerPetroglyphs : MonoBehaviour
     [SerializeField] private RectTransform targetIconTransform;
     [SerializeField] private float flyAnimationSpeed = 800f;
     [SerializeField] private float startScale = 0.1f;
-    [SerializeField] private float delayAfterFinding = 0.5f; // --- НОВАЯ СТРОКА ---
+    [SerializeField] private float delayAfterFinding = 0.5f;
 
     [Header("Game Settings")]
     [SerializeField] private List<Sprite> allPetroglyphSprites;
@@ -69,23 +68,15 @@ public class GameManagerPetroglyphs : MonoBehaviour
         if (!isGameActive || isAnimating) return;
         if (foundLocation.petroglyphSprite == currentPetroglyph)
         {
-            isAnimating = true; // Блокируем игру на время анимации
-
-            // Создаем объект из префаба
+            isAnimating = true;
             GameObject flyingIconObject = Instantiate(flyingPetroglyphPrefab, mainCanvas.transform);
-
-            // Получаем его аниматор
             FlyingIconAnimator animator = flyingIconObject.GetComponent<FlyingIconAnimator>();
-
             Vector3 startPosition = Camera.main.WorldToScreenPoint(foundLocation.transform.position);
             Vector3 endPosition = targetIconTransform.position;
-
-            // Запускаем анимацию и передаем ей метод OnAnimationComplete, который выполнится по завершении
             animator.StartAnimation(foundLocation.petroglyphSprite, startPosition, endPosition, flyAnimationSpeed, startScale, OnAnimationComplete);
         }
     }
 
-    // --- НОВЫЙ МЕТОД, ВЫПОЛНЯЕТСЯ ПОСЛЕ АНИМАЦИИ ---
     private void OnAnimationComplete()
     {
         StartCoroutine(OnAnimationCompleteCoroutine());
@@ -93,15 +84,11 @@ public class GameManagerPetroglyphs : MonoBehaviour
 
     private IEnumerator OnAnimationCompleteCoroutine()
     {
-        // Ждем небольшую паузу, чтобы насладиться моментом
         yield return new WaitForSeconds(delayAfterFinding);
-
-        // Теперь обновляем игру
         foundPetroglyphsCount++;
         UpdateFoundCounterText();
         SelectNextPetroglyph();
-
-        isAnimating = false; // Снимаем блокировку
+        isAnimating = false;
     }
 
     public void SelectNextPetroglyph()
@@ -128,8 +115,6 @@ public class GameManagerPetroglyphs : MonoBehaviour
         }
     }
 
-    // ... (остальные методы без изменений) ...
-
     private void ResetTimer()
     {
         currentTime = timePerPetroglyph;
@@ -140,6 +125,7 @@ public class GameManagerPetroglyphs : MonoBehaviour
         isGameActive = false;
         gameUiContainer.SetActive(false);
         yield return cameraController.MoveCameraToDefaultPosition();
+        // Передаем награду (coinsOnWin)
         endPanel.ShowPanel(true, foundPetroglyphsCount, totalPetroglyphsCount, coinsOnWin);
     }
 
@@ -148,6 +134,7 @@ public class GameManagerPetroglyphs : MonoBehaviour
         isGameActive = false;
         gameUiContainer.SetActive(false);
         yield return cameraController.MoveCameraToDefaultPosition();
+        // Передаем 0 монет
         endPanel.ShowPanel(false, foundPetroglyphsCount, totalPetroglyphsCount, 0);
     }
 }
