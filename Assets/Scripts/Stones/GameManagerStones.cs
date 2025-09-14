@@ -94,14 +94,9 @@ public class GameManagerStones : MonoBehaviour
     void WinGame()
     {
         isGameActive = false;
-
-        if (spawner != null)
-        {
-            spawner.StopSpawning();
-        }
-
+        if (spawner != null) spawner.StopSpawning();
         gameplayUiContainer.SetActive(false);
-        // ИЗМЕНЕНО: Передаем true (победа) и количество монет для награды.
+        // Передаем награду (targetCoins) в панель
         endGamePanel.ShowPanel(true, targetCoins);
 
         if (coinRewardController != null)
@@ -113,14 +108,9 @@ public class GameManagerStones : MonoBehaviour
     void LoseGame()
     {
         isGameActive = false;
-
-        if (spawner != null)
-        {
-            spawner.StopSpawning();
-        }
-
+        if (spawner != null) spawner.StopSpawning();
         gameplayUiContainer.SetActive(false);
-        // ИЗМЕНЕНО: Передаем false (поражение) и 0 монет.
+        // Передаем 0 монет в панель
         endGamePanel.ShowPanel(false, 0);
     }
 }
