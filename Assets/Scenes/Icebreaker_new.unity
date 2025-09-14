@@ -3015,7 +3015,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: winDistance
-      value: 5
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 1716312540013351371, guid: 79d3e74b84ecba5498186abbef5e85fe, type: 3}
       propertyPath: distanceText

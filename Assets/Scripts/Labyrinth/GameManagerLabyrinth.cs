@@ -33,6 +33,8 @@ public class GameManagerLabyrinth : MonoBehaviour
     private int currentFishCount;
     private bool isGameOver = false;
     private Queue<PendingCatch> pendingCatches = new Queue<PendingCatch>();
+    // НОВОЕ: Переменная для хранения награды за текущий раунд.
+    private int coinsEarnedThisRound = 0;
 
     void Start()
     {
@@ -40,23 +42,17 @@ public class GameManagerLabyrinth : MonoBehaviour
         UpdateFishCounterUI();
     }
 
-    // <<< ИЗМЕНЕНИЕ ЗДЕСЬ >>>
     void Update()
     {
-        // Если игра уже закончилась (победой или поражением), прекращаем все проверки.
         if (isGameOver)
         {
             return;
         }
 
-        // Продолжаем обрабатывать механику "отложенной" поимки рыбок.
         ProcessPendingCatches();
 
-        // <<< ДОБАВЛЕНА ПРОВЕРКА ТАЙМЕРА >>>
-        // В каждом кадре проверяем, не закончилось ли время в скрипте таймера.
         if (timer != null && timer.timeIsUp)
         {
-            // Если время вышло, вызываем поражение.
             LoseGame("Время вышло!");
         }
     }
@@ -137,6 +133,9 @@ public class GameManagerLabyrinth : MonoBehaviour
 
     private IEnumerator EndGameSequence(bool didWin, int finalReward)
     {
+        // НОВОЕ: Запоминаем награду, чтобы использовать ее позже в кнопке "Меню".
+        this.coinsEarnedThisRound = finalReward;
+
         if (inGameUIContainer != null) { inGameUIContainer.SetActive(false); }
         player.enabled = false;
         timer.enabled = false;
@@ -153,9 +152,15 @@ public class GameManagerLabyrinth : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
+    // ИЗМЕНЕНО: Теперь эта функция добавляет монеты и переходит в меню.
     public void GoToMenu()
     {
         Time.timeScale = 1f;
-        Debug.Log("Переход в главное меню...");
+
+        // 1. Добавляем заработанные монеты в общее хранилище
+        CoinManager.AddCoins(coinsEarnedThisRound);
+
+        // 2. Загружаем сцену главного меню
+        SceneManager.LoadScene("MainMenu");
     }
 }
