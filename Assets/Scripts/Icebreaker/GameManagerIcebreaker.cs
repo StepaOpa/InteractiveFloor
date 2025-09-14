@@ -1,38 +1,46 @@
-
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class GameManagerIcebreaker : MonoBehaviour
 {
-    // НОВОЕ: Приватная переменная для хранения монет, заработанных в ЭТОМ раунде.
-    // Она будет равна 0 до тех пор, пока другой скрипт не скажет нам, сколько мы заработали.
+    // "Память" для монеток, которые "зависли в воздухе"
     private int currentEarnedCoins = 0;
 
-    // НОВЫЙ ПУБЛИЧНЫЙ МЕТОД:
-    // Этот метод будут вызывать другие скрипты, чтобы сообщить, сколько монет заработал игрок.
-    // Мы сделаем его публичным, чтобы он был виден "снаружи".
+    // Этот метод вызывается из IcebreakerController, чтобы сообщить результат
     public void SetEarnedCoins(int amount)
     {
         currentEarnedCoins = amount;
-        Debug.Log("За эту игру заработано монет: " + currentEarnedCoins); // Для проверки в консоли
     }
 
-    // Метод для кнопки "Вернуться в меню". Теперь он использует сохраненное значение.
-    public void ReturnToMainMenu()
+    // --- МЕТОДЫ ДЛЯ ТРЕХ КНОПОК ---
+
+    public void OnNextLevelButtonClicked()
     {
         Time.timeScale = 1f;
-
-        // Используем значение, которое нам передали через метод SetEarnedCoins.
-        // Если ничего не передали, то добавится 0.
+        // Сначала добавляем монеты в общую копилку
         CoinManager.AddCoins(currentEarnedCoins);
-
-        SceneManager.LoadScene("MainMenu");
+        // Потом переходим на следующий уровень
+        MainMenuLevelManager.LoadNextLevel();
     }
 
-    // Метод перезапуска остается без изменений.
-    public void RestartGame()
+
+
+    public void OnEndGameButtonClicked()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        // Сначала добавляем монеты в общую копилку
+        CoinManager.AddCoins(currentEarnedCoins);
+        // Поднимаем флаг для сброса счета в главном меню
+        MainMenuLevelManager.shouldResetScoreOnLoad = true;
+        // Потом переходим на экран общего счета
+        SceneManager.LoadScene("TotalScoreScene");
+    }
+
+    public void OnRestartButtonClicked()
+    {
+        Time.timeScale = 1f;
+        // Ничего не добавляем в копилку
+        // Просто перезапускаем текущий уровень
+        MainMenuLevelManager.RestartCurrentLevel();
     }
 }
