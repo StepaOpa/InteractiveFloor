@@ -6,9 +6,23 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/OutdoorsScene.unity
-    guid: 8124e5870f4fd4c779e7a5f994e84ad1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 6f84e5ae463dc1742b9c05a824bf38c7
+  - enabled: 1
+    path: Assets/Scenes/Labyrinth.unity
+    guid: d0daa447d879a0449b26ada0d03a5bb4
+  - enabled: 1
+    path: Assets/Scenes/Icebreaker_new.unity
+    guid: bca127b8a2cdb3142894f25db16674de
+  - enabled: 1
+    path: Assets/Scenes/Mogilnik_new.unity
+    guid: 3d41e5dc443342f46a2dc8d3bbd587b6
+  - enabled: 1
+    path: Assets/Scenes/Petroglyphs_new.unity
+    guid: c5a7436d893c1064a8734d699baf0b3c
+  - enabled: 1
+    path: Assets/Scenes/Stones.unity
+    guid: 1c07abb0bc0714741897b5c40b8d7343
   m_configObjects:
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 35845fe01580c41289b024647b1d1c53,
-      type: 3}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 35845fe01580c41289b024647b1d1c53, type: 3}
   m_UseUCBPForAssetBundles: 0
