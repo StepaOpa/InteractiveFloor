@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using UnityEngine.UI; // <<< ВОТ ЭТА СТРОКА РЕШИТ ОШИБКУ
+
 
 public class GameManager : MonoBehaviour
 {
@@ -9,6 +11,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private LevelController levelController;
     private EndGamePanelUI endGamePanelUI;
     [SerializeField] private float winScreenDelay = 0.5f;
+
+    private int coinsEarnedThisRound = 0;
 
     void Awake()
     {
@@ -62,14 +66,33 @@ public class GameManager : MonoBehaviour
         if (endGamePanelUI != null)
         {
             endGamePanelUI.gameObject.SetActive(false);
+
+            // Настраиваем кнопку "Заново"
             endGamePanelUI.restartButton.onClick.RemoveAllListeners();
             endGamePanelUI.restartButton.onClick.AddListener(RestartGame);
+
+            // Находим кнопку меню и настраиваем ее
+            // Ищем компонент Button среди дочерних объектов панели
+            Button[] buttons = endGamePanelUI.GetComponentsInChildren<Button>(true);
+            foreach (Button button in buttons)
+            {
+                // Если имя кнопки содержит "Menu" (без учета регистра), настраиваем ее
+                if (button.name.ToLower().Contains("menu"))
+                {
+                    button.onClick.RemoveAllListeners();
+                    button.onClick.AddListener(GoToMainMenu);
+                    Debug.Log($"[GameManager] Кнопка меню '{button.name}' успешно настроена.");
+                    break; // Выходим из цикла, так как нашли нужную кнопку
+                }
+            }
+
             Debug.Log("[GameManager] Панель концовки успешно найдена и настроена.");
         }
     }
 
     public void ShowWinScreen(int finalScore, int totalLevels)
     {
+        this.coinsEarnedThisRound = finalScore;
         StartCoroutine(ShowWinScreenCoroutine(finalScore, totalLevels));
     }
 
@@ -78,21 +101,11 @@ public class GameManager : MonoBehaviour
         if (endGamePanelUI != null)
         {
             yield return new WaitForSeconds(winScreenDelay);
-
-            if (SoundManager.Instance != null)
-            {
-                SoundManager.Instance.StopAllSounds();
-            }
-
+            if (SoundManager.Instance != null) { SoundManager.Instance.StopAllSounds(); }
             Time.timeScale = 0f;
-
             endGamePanelUI.gameObject.SetActive(true);
             endGamePanelUI.ShowWin(finalScore);
-
-            if (SoundManager.Instance != null)
-            {
-                SoundManager.Instance.PlayWinSound();
-            }
+            if (SoundManager.Instance != null) { SoundManager.Instance.PlayWinSound(); }
         }
         else
         {
@@ -100,37 +113,39 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // --- ВОТ ЕДИНСТВЕННЫЙ И ПРАВИЛЬНЫЙ МЕТОД ПОРАЖЕНИЯ ---
     public void ShowLoseScreen()
     {
         if (endGamePanelUI == null || levelController == null || UIController.Instance == null)
         {
-            Debug.LogError("[GameManager] Не могу показать экран поражения! Одна из ключевых ссылок отсутствует (EndGamePanel, LevelController или UIController).");
+            Debug.LogError("[GameManager] Не могу показать экран поражения! Одна из ключевых ссылок отсутствует.");
             return;
         }
 
-        if (SoundManager.Instance != null)
-        {
-            SoundManager.Instance.StopAllSounds();
-        }
-
+        if (SoundManager.Instance != null) { SoundManager.Instance.StopAllSounds(); }
         Time.timeScale = 0f;
 
         int finalScore = UIController.Instance.GetCurrentScore();
         int levelsCompleted = UIController.Instance.GetCurrentLevel() - 1;
         int totalLevels = levelController.GetTotalLevelCount();
 
+        this.coinsEarnedThisRound = finalScore;
+
         endGamePanelUI.gameObject.SetActive(true);
         endGamePanelUI.ShowLose(finalScore, levelsCompleted, totalLevels);
-
-        if (SoundManager.Instance != null)
-        {
-            SoundManager.Instance.PlayLoseSound();
-        }
+        if (SoundManager.Instance != null) { SoundManager.Instance.PlayLoseSound(); }
     }
 
     public void RestartGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void GoToMainMenu()
+    {
+        Time.timeScale = 1f;
+
+        CoinManager.AddCoins(coinsEarnedThisRound);
+
+        SceneManager.LoadScene("MainMenu");
     }
 }
