@@ -33,7 +33,7 @@ public class GameManagerLabyrinth : MonoBehaviour
     private int currentFishCount;
     private bool isGameOver = false;
     private Queue<PendingCatch> pendingCatches = new Queue<PendingCatch>();
-    // НОВОЕ: Переменная для хранения награды за текущий раунд.
+    // "Память" для монеток, которые "зависли в воздухе"
     private int coinsEarnedThisRound = 0;
 
     void Start()
@@ -44,13 +44,8 @@ public class GameManagerLabyrinth : MonoBehaviour
 
     void Update()
     {
-        if (isGameOver)
-        {
-            return;
-        }
-
+        if (isGameOver) return;
         ProcessPendingCatches();
-
         if (timer != null && timer.timeIsUp)
         {
             LoseGame("Время вышло!");
@@ -60,18 +55,11 @@ public class GameManagerLabyrinth : MonoBehaviour
     public void CatchOneFish(Transform netTransform)
     {
         if (isGameOver || currentFishCount <= 0) return;
-
         currentFishCount--;
         UpdateFishCounterUI();
-
         GameObject fishToCatch = fishObjects[currentFishCount];
-        PendingCatch newCatch = new PendingCatch
-        {
-            fishToCatch = fishToCatch,
-            netTransform = netTransform
-        };
+        PendingCatch newCatch = new PendingCatch { fishToCatch = fishToCatch, netTransform = netTransform };
         pendingCatches.Enqueue(newCatch);
-
         if (currentFishCount <= 0)
         {
             LoseGame("Все рыбки попались в сети!");
@@ -84,19 +72,13 @@ public class GameManagerLabyrinth : MonoBehaviour
         {
             PendingCatch nextCatch = pendingCatches.Peek();
             float distance = Vector3.Distance(player.transform.position, nextCatch.netTransform.position);
-
             if (distance > catchDistanceThreshold)
             {
                 PendingCatch catchToExecute = pendingCatches.Dequeue();
-
                 catchToExecute.fishToCatch.transform.parent = null;
                 catchToExecute.fishToCatch.transform.position = catchToExecute.netTransform.position;
-
                 FishAnimator animator = catchToExecute.fishToCatch.GetComponent<FishAnimator>();
-                if (animator != null)
-                {
-                    animator.enabled = false;
-                }
+                if (animator != null) animator.enabled = false;
             }
         }
     }
@@ -133,7 +115,7 @@ public class GameManagerLabyrinth : MonoBehaviour
 
     private IEnumerator EndGameSequence(bool didWin, int finalReward)
     {
-        // НОВОЕ: Запоминаем награду, чтобы использовать ее позже в кнопке "Меню".
+        // Запоминаем награду в "память"
         this.coinsEarnedThisRound = finalReward;
 
         if (inGameUIContainer != null) { inGameUIContainer.SetActive(false); }
@@ -146,21 +128,28 @@ public class GameManagerLabyrinth : MonoBehaviour
         else { Time.timeScale = 0f; }
     }
 
-    public void RestartGame()
+    // --- МЕТОДЫ ДЛЯ ТРЕХ КНОПОК ---
+
+    public void OnNextLevelButtonClicked()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        CoinManager.AddCoins(coinsEarnedThisRound);
+        MainMenuLevelManager.LoadNextLevel();
     }
 
-    // ИЗМЕНЕНО: Теперь эта функция добавляет монеты и переходит в меню.
-    public void GoToMenu()
+    public void OnEndGameButtonClicked()
     {
         Time.timeScale = 1f;
-
-        // 1. Добавляем заработанные монеты в общее хранилище
         CoinManager.AddCoins(coinsEarnedThisRound);
+        // Поднимаем флаг для сброса счета в главном меню
+        MainMenuLevelManager.shouldResetScoreOnLoad = true;
+        SceneManager.LoadScene("TotalScoreScene");
+    }
 
-        // 2. Загружаем сцену главного меню
-        SceneManager.LoadScene("MainMenu");
+    public void OnRestartButtonClicked()
+    {
+        Time.timeScale = 1f;
+        // Ничего не добавляем в копилку
+        MainMenuLevelManager.RestartCurrentLevel();
     }
 }
