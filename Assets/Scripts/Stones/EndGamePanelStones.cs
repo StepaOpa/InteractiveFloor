@@ -8,16 +8,12 @@ public class EndGamePanelStones : MonoBehaviour
     public TextMeshProUGUI titleText;
     public TextMeshProUGUI detailsText;
 
-    // "Память" для монеток, которые "зависли в воздухе"
     private int coinsEarnedThisRound = 0;
 
-    // Этот метод вызывается из GameManagerStones, чтобы показать панель
     public void ShowPanel(bool isVictory, int coinsEarned)
     {
         gameObject.SetActive(true);
-        // Запоминаем награду за этот раунд
         this.coinsEarnedThisRound = coinsEarned;
-
         if (isVictory)
         {
             titleText.text = "Победа!";
@@ -30,34 +26,28 @@ public class EndGamePanelStones : MonoBehaviour
         }
     }
 
-    // --- МЕТОДЫ ДЛЯ ТРЕХ КНОПОК ---
-
-    // 1. Для кнопки "Следующий уровень"
     public void OnNextLevelButtonClicked()
     {
         Time.timeScale = 1f;
-        // Сначала добавляем монеты в общую копилку
         CoinManager.AddCoins(coinsEarnedThisRound);
-        // Потом переходим на следующий уровень
         MainMenuLevelManager.LoadNextLevel();
     }
 
-    // 2. Для кнопки "Завершить игру"
+    // ИЗМЕНЕННЫЙ МЕТОД
     public void OnEndGameButtonClicked()
     {
         Time.timeScale = 1f;
-        // Сначала добавляем монеты в общую копилку
         CoinManager.AddCoins(coinsEarnedThisRound);
-        // Потом переходим на экран общего счета
+
+        // НОВАЯ СТРОКА: Перед переходом поднимаем флаг!
+        MainMenuLevelManager.shouldResetScoreOnLoad = true;
+
         SceneManager.LoadScene("TotalScoreScene");
     }
 
-    // 3. Для кнопки "Начать заново"
     public void OnRestartButtonClicked()
     {
         Time.timeScale = 1f;
-        // Ничего НЕ добавляем в копилку!
-        // Просто перезапускаем текущий уровень
         MainMenuLevelManager.RestartCurrentLevel();
     }
 }

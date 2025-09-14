@@ -8,11 +8,13 @@ public class TotalScoreController : MonoBehaviour
 
     void Start()
     {
-        // При запуске сцены получаем монеты из нашего хранилища и показываем их
-        totalCoinsText.text = "Ваш общий счёт: " + CoinManager.GetCoins();
+        if (totalCoinsText != null)
+        {
+            totalCoinsText.text = "Ваш общий счёт: " + CoinManager.GetCoins();
+        }
     }
 
-    // Этот метод повесим на кнопку
+    // Этот метод ТОЛЬКО загружает сцену. Он НЕ добавляет монеты.
     public void GoToMainMenu()
     {
         SceneManager.LoadScene("MainMenu");

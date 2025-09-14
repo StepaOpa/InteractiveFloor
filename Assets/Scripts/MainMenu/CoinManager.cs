@@ -16,4 +16,14 @@ public static class CoinManager
     {
         return PlayerPrefs.GetInt(coinsKey, 0);
     }
+
+    // НОВЫЙ МЕТОД: для сброса монеток
+    public static void ResetCoins()
+    {
+        // Просто удаляем запись о монетах из памяти устройства.
+        // При следующем вызове GetCoins(), если записи нет, он вернет 0.
+        PlayerPrefs.DeleteKey(coinsKey);
+        PlayerPrefs.Save();
+        Debug.Log("Счетчик монет сброшен!"); // Сообщение для проверки в консоли
+    }
 }

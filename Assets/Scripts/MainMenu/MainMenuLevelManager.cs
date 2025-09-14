@@ -3,15 +3,13 @@ using UnityEngine.SceneManagement;
 
 public static class MainMenuLevelManager
 {
+    // НОВАЯ СТРОКА: "Флаг" для сброса счета.
+    public static bool shouldResetScoreOnLoad = false;
+
     private static string[] levelScenes =
     {
-        "Stones",
-        "Labyrinth",
-        "Petroglyphs_new",
-        "Mogilnik_new",
-        "Game4_SceneName",
-        "Icebreaker_new",
-        "Game7_SceneName"
+        "Stones", "Labyrinth", "Petroglyphs_new", "Mogilnik_new",
+        "Game4_SceneName", "Icebreaker_new", "Game7_SceneName"
     };
 
     public static int currentLevelIndex = 0;
@@ -20,13 +18,9 @@ public static class MainMenuLevelManager
     {
         currentLevelIndex++;
         if (currentLevelIndex < levelScenes.Length)
-        {
-            SceneManager.LoadScene(levelScenes[currentLevelIndex]);
-        }
+        { SceneManager.LoadScene(levelScenes[currentLevelIndex]); }
         else
-        {
-            SceneManager.LoadScene("TotalScoreScene");
-        }
+        { SceneManager.LoadScene("TotalScoreScene"); }
     }
 
     public static void RestartCurrentLevel()

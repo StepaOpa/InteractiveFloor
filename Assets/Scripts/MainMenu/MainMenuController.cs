@@ -1,38 +1,42 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using TMPro; // ОБЯЗАТЕЛЬНО добавьте эту строку для работы с TextMeshPro
+using TMPro;
 
 
 public class MainMenuController : MonoBehaviour
 {
-    // Создаем публичное поле, куда мы перетащим наш текстовый объект
     public TextMeshProUGUI coinsText;
 
-    // Этот метод вызывается один раз при запуске сцены
+    // Метод Start() теперь главный по сбросу счета
     void Start()
     {
+        // ПРОВЕРЯЕМ ФЛАГ: Если нам дали сигнал сбросить счет...
+        if (MainMenuLevelManager.shouldResetScoreOnLoad)
+        {
+            CoinManager.ResetCoins(); // ...сбрасываем монеты...
+            MainMenuLevelManager.shouldResetScoreOnLoad = false; // ...и опускаем флаг, чтобы не сбросить счет еще раз.
+        }
+
+        // А уже после всех проверок обновляем текст на экране
         UpdateCoinsDisplay();
     }
 
-    // Метод для обновления текста с монетами
     void UpdateCoinsDisplay()
     {
         if (coinsText != null)
         {
-            // Обращаемся к нашему CoinManager, получаем монеты и выводим на экран
             coinsText.text = "Монеты: " + CoinManager.GetCoins();
         }
     }
 
-    // Ваши методы для загрузки сцен и выхода из игры остаются без изменений
-    public void LoadScene(string sceneName)
+    // Кнопка "Начать игру" теперь НЕ сбрасывает счет. Она просто запускает игру.
+    public void StartGame()
     {
-        SceneManager.LoadScene(sceneName);
+        MainMenuLevelManager.StartFirstLevel();
     }
 
     public void QuitGame()
     {
-        Debug.Log("Quitting game...");
         Application.Quit();
     }
 }
