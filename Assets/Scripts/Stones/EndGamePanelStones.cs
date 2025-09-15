@@ -1,6 +1,6 @@
 using UnityEngine;
 using TMPro;
-using UnityEngine.SceneManagement; // Необходимо для перезагрузки сцены
+using UnityEngine.SceneManagement;
 
 public class EndGamePanelStones : MonoBehaviour
 {
@@ -8,16 +8,16 @@ public class EndGamePanelStones : MonoBehaviour
     public TextMeshProUGUI titleText;
     public TextMeshProUGUI detailsText;
 
-    // Этот метод будет вызываться из GameManagerStones
-    public void ShowPanel(bool isVictory)
-    {
-        // Включаем саму панель
-        gameObject.SetActive(true);
+    private int coinsEarnedThisRound = 0;
 
+    public void ShowPanel(bool isVictory, int coinsEarned)
+    {
+        gameObject.SetActive(true);
+        this.coinsEarnedThisRound = coinsEarned;
         if (isVictory)
         {
             titleText.text = "Победа!";
-            detailsText.text = "Все ценные камни собраны";
+            detailsText.text = $"Все ценные камни собраны\nЗаработано монет: {coinsEarned}";
         }
         else
         {
@@ -26,18 +26,28 @@ public class EndGamePanelStones : MonoBehaviour
         }
     }
 
-    // Этот метод мы привяжем к кнопке "Заново"
-    public void OnRestartButtonClicked()
+    public void OnNextLevelButtonClicked()
     {
-        // Перезагружаем текущую активную сцену
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        Time.timeScale = 1f;
+        CoinManager.AddCoins(coinsEarnedThisRound);
+        MainMenuLevelManager.LoadNextLevel();
     }
 
-    // Этот метод мы привяжем к кнопке "Главное меню"
-    public void OnMainMenuButtonClicked()
+    // ИЗМЕНЕННЫЙ МЕТОД
+    public void OnEndGameButtonClicked()
     {
-        // Пока что просто выводим сообщение в консоль
-        Debug.Log("Переход в главное меню...");
-        // В будущем здесь будет SceneManager.LoadScene("MainMenuSceneName");
+        Time.timeScale = 1f;
+        CoinManager.AddCoins(coinsEarnedThisRound);
+
+        // НОВАЯ СТРОКА: Перед переходом поднимаем флаг!
+        MainMenuLevelManager.shouldResetScoreOnLoad = true;
+
+        SceneManager.LoadScene("TotalScoreScene");
+    }
+
+    public void OnRestartButtonClicked()
+    {
+        Time.timeScale = 1f;
+        MainMenuLevelManager.RestartCurrentLevel();
     }
 }

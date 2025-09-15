@@ -8,32 +8,25 @@ public class GameEndPanelPetroglyphs : MonoBehaviour
     [Header("UI Компоненты")]
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI detailsText;
-    [SerializeField] private Button restartButton;
-    [SerializeField] private Button mainMenuButton;
 
-    // --- НОВАЯ СТРОКА ---
     [Header("Система наград")]
-    [SerializeField] private CoinRewardController coinRewardController; // Ссылка на контроллер монеток
+    [SerializeField] private CoinRewardController coinRewardController;
 
-    void Start()
-    {
-        restartButton.onClick.AddListener(OnRestartButtonClick);
-        mainMenuButton.onClick.AddListener(OnMainMenuButtonClick);
-    }
+    // "Память" для монеток, которые "зависли в воздухе"
+    private int coinsEarnedThisRound = 0;
 
-    // --- МЕТОД ИЗМЕНЕН ---
-    // Добавили параметр coinsAwarded для передачи количества монет
+    // Этот метод вызывается из GameManager'а
     public void ShowPanel(bool isWin, int foundCount, int totalCount, int coinsAwarded)
     {
         gameObject.SetActive(true);
+        // Запоминаем награду за этот раунд
+        this.coinsEarnedThisRound = coinsAwarded;
 
         if (isWin)
         {
             titleText.text = "Победа!";
             detailsText.text = $"Вы нашли все рисунки!\nЗаработано монеток: {coinsAwarded}";
 
-            // --- НОВАЯ СТРОКА ---
-            // Запускаем анимацию падения монеток
             if (coinRewardController != null)
             {
                 coinRewardController.StartRewardSequence(coinsAwarded);
@@ -46,19 +39,28 @@ public class GameEndPanelPetroglyphs : MonoBehaviour
         }
     }
 
-    private void OnRestartButtonClick()
+    // --- МЕТОДЫ ДЛЯ ТРЕХ КНОПОК ---
+
+    public void OnNextLevelButtonClicked()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        Time.timeScale = 1f;
+        CoinManager.AddCoins(coinsEarnedThisRound);
+        MainMenuLevelManager.LoadNextLevel();
     }
 
-    private void OnMainMenuButtonClick()
+    public void OnEndGameButtonClicked()
     {
-        Debug.Log("Переход в главное меню (не реализовано)");
+        Time.timeScale = 1f;
+        CoinManager.AddCoins(coinsEarnedThisRound);
+        // Поднимаем флаг для сброса счета в главном меню
+        MainMenuLevelManager.shouldResetScoreOnLoad = true;
+        SceneManager.LoadScene("TotalScoreScene");
     }
 
-    private void OnDestroy()
+    public void OnRestartButtonClicked()
     {
-        restartButton.onClick.RemoveListener(OnRestartButtonClick);
-        mainMenuButton.onClick.RemoveListener(OnMainMenuButtonClick);
+        Time.timeScale = 1f;
+        // Ничего не добавляем в копилку
+        MainMenuLevelManager.RestartCurrentLevel();
     }
 }

@@ -7,8 +7,9 @@ public class EndGamePanelUI : MonoBehaviour
     [Header("Ссылки на UI элементы")]
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI detailsText;
-    public Button restartButton;
-    [SerializeField] private Button menuButton;
+    public Button restartButton; // Кнопка "Начать заново"
+    public Button menuButton; // Кнопка "Завершить игру"
+    public Button nextLevelButton; // НОВАЯ КНОПКА "Следующий уровень"
 
     [Header("Система наград")]
     [SerializeField] private CoinRewardController coinRewardController;
@@ -33,7 +34,6 @@ public class EndGamePanelUI : MonoBehaviour
         }
     }
 
-    // --- УБЕДИСЬ, ЧТО ЭТОТ МЕТОД ПРИНИМАЕТ 3 АРГУМЕНТА ---
     public void ShowLose(int finalScore, int levelsCompleted, int totalLevels)
     {
         titleText.text = "Время вышло";

@@ -1,6 +1,7 @@
 using UnityEngine;
-using UnityEngine.UI; // Для работы с Image (радиальный бар)
-using TMPro;          // Для работы с TextMeshPro
+using UnityEngine.UI;
+using TMPro;
+
 
 public class GameManagerStones : MonoBehaviour
 {
@@ -15,7 +16,7 @@ public class GameManagerStones : MonoBehaviour
     public Image timerRadialBar;
 
     [Header("System & Controllers")]
-    public SpawnerStones spawner; // Ссылка на спаунер камней
+    public SpawnerStones spawner;
     public GameObject gameplayUiContainer;
     public EndGamePanelStones endGamePanel;
     public CoinRewardControllerStones coinRewardController;
@@ -61,8 +62,6 @@ public class GameManagerStones : MonoBehaviour
         {
             if (hit.collider.CompareTag("ValuableStone"))
             {
-                // <<< ДОБАВЬТЕ ЭТУ СТРОКУ >>>
-                // Обращаемся к нашему Sound Manager и просим проиграть звук с именем "CollectStone"
                 SoundManagerStones.instance.PlaySound("CollectStone");
 
                 coins++;
@@ -95,17 +94,11 @@ public class GameManagerStones : MonoBehaviour
     void WinGame()
     {
         isGameActive = false;
-
-        // Останавливаем появление новых камней
-        if (spawner != null)
-        {
-            spawner.StopSpawning();
-        }
-
+        if (spawner != null) spawner.StopSpawning();
         gameplayUiContainer.SetActive(false);
-        endGamePanel.ShowPanel(true);
+        // Передаем награду (targetCoins) в панель
+        endGamePanel.ShowPanel(true, targetCoins);
 
-        // Запускаем анимацию победных монеток
         if (coinRewardController != null)
         {
             StartCoroutine(coinRewardController.GetRewardSequenceCoroutine(targetCoins));
@@ -115,14 +108,9 @@ public class GameManagerStones : MonoBehaviour
     void LoseGame()
     {
         isGameActive = false;
-
-        // Останавливаем появление новых камней
-        if (spawner != null)
-        {
-            spawner.StopSpawning();
-        }
-
+        if (spawner != null) spawner.StopSpawning();
         gameplayUiContainer.SetActive(false);
-        endGamePanel.ShowPanel(false);
+        // Передаем 0 монет в панель
+        endGamePanel.ShowPanel(false, 0);
     }
 }
