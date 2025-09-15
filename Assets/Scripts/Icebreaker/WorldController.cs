@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class WorldController : MonoBehaviour
 {
+    // ... (все ваши поля остаются без изменений) ...
     [Header("Настройки чанков")]
     [SerializeField] private GameObject chunkPrefab;
     [SerializeField] private GameObject crackedChunkPrefab;
@@ -11,7 +12,7 @@ public class WorldController : MonoBehaviour
 
     [Header("Настройки стен")]
     [Tooltip("Список префабов стен для случайного спавна")]
-    [SerializeField] private GameObject[] wallPrefabs; // Массив (список) префабов
+    [SerializeField] private GameObject[] wallPrefabs;
     [SerializeField] private float leftWallXPosition = -12f;
     [SerializeField] private float rightWallXPosition = 12f;
 
@@ -20,13 +21,38 @@ public class WorldController : MonoBehaviour
     [SerializeField] private float chunkSpeed = 10f;
     [SerializeField] private Transform replaceChunkPoint;
 
+    [Header("Настройки стартовой зоны")]
+    [Tooltip("Сколько чанков сгенерировать на старте, чтобы не было пустоты.")]
+    [SerializeField] private int initialChunkCount = 5;
+    [Tooltip("Сколько из этих стартовых чанков будут без препятствий.")]
+    [SerializeField] private int safeZoneChunks = 2;
+
     private List<GameObject> activeChunks = new List<GameObject>();
     private List<GameObject> activeObjects = new List<GameObject>();
 
     private void Start()
     {
-        SpawnChunk(chunkPrefab, chunkSpawnPoint.position.z);
+        GenerateInitialWorld();
     }
+
+    // ... (Update и другие методы остаются без изменений) ...
+
+    // ИЗМЕНЕННЫЙ МЕТОД ДЛЯ ГЕНЕРАЦИИ СТАРТОВОЙ ЛОКАЦИИ
+    private void GenerateInitialWorld()
+    {
+        for (int i = 0; i < initialChunkCount; i++)
+        {
+            // === ВОТ ИЗМЕНЕНИЕ ===
+            // Вместо далекой точки chunkSpawnPoint.position.z, мы начинаем отсчет от позиции
+            // самого этого объекта (WorldController), которая должна быть в центре мира (Z=0).
+            float spawnZ = transform.position.z + (i * chunkLength);
+
+            bool spawnObstacles = i >= safeZoneChunks;
+            SpawnChunk(chunkPrefab, spawnZ, spawnObstacles);
+        }
+    }
+
+    // ... (остальной код остается точно таким же, как в прошлый раз) ...
 
     private void Update()
     {
@@ -35,39 +61,35 @@ public class WorldController : MonoBehaviour
         ReplaceChunk();
     }
 
-    /// <summary>
-    /// Создает новый участок мира, включая пол и стены.
-    /// </summary>
-    private void SpawnChunk(GameObject prefab, float z)
+    private void SpawnChunk(GameObject prefab, float z, bool shouldSpawnObstacles = true)
     {
         for (int i = -40 * groundWidth; i <= 40 * groundWidth; i += 40)
         {
             GameObject newChunk = Instantiate(prefab, new Vector3(i, 0, z), Quaternion.identity, chunkSpawnPoint != null ? chunkSpawnPoint.parent : null);
 
-            // Логика для центрального чанка (спавн препятствий и стен)
             if (newChunk.transform.position.x == 0)
             {
                 activeChunks.Add(newChunk);
-                ChunkObstacleSpawner obstacleSpawner = newChunk.GetComponent<ChunkObstacleSpawner>();
-                if (obstacleSpawner != null)
+
+                if (shouldSpawnObstacles)
                 {
-                    activeObjects.AddRange(obstacleSpawner.SpawnObstacles(chunkSpawnPoint));
+                    ChunkObstacleSpawner obstacleSpawner = newChunk.GetComponent<ChunkObstacleSpawner>();
+                    if (obstacleSpawner != null)
+                    {
+                        activeObjects.AddRange(obstacleSpawner.SpawnObstacles(chunkSpawnPoint));
+                    }
                 }
 
-                // Проверяем, есть ли вообще префабы стен в списке
                 if (wallPrefabs != null && wallPrefabs.Length > 0)
                 {
-                    // 1. Выбираем СЛУЧАЙНЫЙ префаб из нашего списка
-                    int randomIndex = Random.Range(0, wallPrefabs.Length);
+                    int randomIndex = UnityEngine.Random.Range(0, wallPrefabs.Length);
                     GameObject randomWallPrefab = wallPrefabs[randomIndex];
 
-                    // 2. Создаем левую стену, используя случайный префаб
                     Vector3 baseLeftPos = new Vector3(leftWallXPosition, 0, z);
                     Vector3 finalLeftPos = baseLeftPos + randomWallPrefab.transform.position;
                     GameObject leftWall = Instantiate(randomWallPrefab, finalLeftPos, randomWallPrefab.transform.rotation, chunkSpawnPoint.parent);
                     activeObjects.Add(leftWall);
 
-                    // 3. Создаем правую стену из ТОГО ЖЕ случайного префаба
                     Vector3 baseRightPos = new Vector3(rightWallXPosition, 0, z);
                     Vector3 finalRightPos = baseRightPos + randomWallPrefab.transform.position;
                     GameObject rightWall = Instantiate(randomWallPrefab, finalRightPos, randomWallPrefab.transform.rotation, chunkSpawnPoint.parent);
@@ -78,9 +100,6 @@ public class WorldController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Двигает все активные объекты (чанки, стены, препятствия) на игрока.
-    /// </summary>
     private void MoveChunks()
     {
         for (int i = activeObjects.Count - 1; i >= 0; i--)
@@ -105,9 +124,6 @@ public class WorldController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Проверяет, не пора ли создать новый чанк.
-    /// </summary>
     private void CheckNumberOfChunks()
     {
         for (int i = activeChunks.Count - 1; i >= 0; i--)
@@ -130,14 +146,11 @@ public class WorldController : MonoBehaviour
             float targetZ = lastChunk.transform.position.z + chunkLength;
             if (targetZ <= chunkSpawnPoint.position.z)
             {
-                SpawnChunk(chunkPrefab, targetZ);
+                SpawnChunk(chunkPrefab, targetZ, true);
             }
         }
     }
 
-    /// <summary>
-    /// Заменяет старый чанк на "расколотую" версию.
-    /// </summary>
     private void ReplaceChunk()
     {
         Vector3 closestPosition = GetClosestChunkPosition();
@@ -181,9 +194,6 @@ public class WorldController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Вспомогательный метод для нахождения ближайшего к игроку чанка.
-    /// </summary>
     private Vector3 GetClosestChunkPosition()
     {
         for (int i = 0; i < activeChunks.Count; i++)

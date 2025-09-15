@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using System.Collections;
 
 public class IcebreakerController : MonoBehaviour
 {
@@ -14,20 +15,32 @@ public class IcebreakerController : MonoBehaviour
 
     [Header("Stats & UI")]
     [SerializeField] private int health = 5;
-    [SerializeField] private float winDistance = 100f; // <-- ПОБЕДНОЕ РАССТОЯНИЕ
+    [SerializeField] private float winDistance = 100f;
 
     [Header("UI References")]
+    [SerializeField] private GameObject endGameScreen;
+    // НОВОЕ ПОЛЕ ДЛЯ КОНТЕЙНЕРА
+    [Tooltip("Объект-контейнер, в котором лежит UI, который нужно скрыть в конце игры (здоровье, дистанция и т.д.).")]
+    [SerializeField] private GameObject inGameUiContainer;
+    [SerializeField] private TextMeshProUGUI titleText;
+    [SerializeField] private TextMeshProUGUI detailsText;
+    [SerializeField] private CoinControllerIcebreaker coinRewardController;
     [SerializeField] private TextMeshProUGUI healthText;
     [SerializeField] private TextMeshProUGUI distanceText;
-    [SerializeField] private GameObject endGameScreen;      // <-- Ссылка на экран конца игры
-    [SerializeField] private TextMeshProUGUI titleText;        // <-- Ссылка на ЗАГОЛОВОК (Победа/Поражение)
-    [SerializeField] private TextMeshProUGUI detailsText;      // <-- Ссылка на текст с деталями
-    [SerializeField] private CoinRewardController coinRewardController; // <-- НОВОЕ: Ссылка на скрипт монеток
 
+    [Header("Animation")]
+    [Tooltip("Перетащи сюда объект CameraRig")]
+    [SerializeField] private Transform cameraRig;
+    [SerializeField] private float endScreenDelay = 1.5f;
+
+    [Header("End Game Effects")]
+    [Tooltip("Перетащи сюда объект с контроллером света для концовки")]
+    [SerializeField] private EndGameLightController lightController;
+
+    private Animator cameraAnimator;
     private int maxHealth;
     private float distanceTraveled = 0f;
-    private bool isGameEnded = false; // <-- Переименовали для ясности
-
+    private bool isGameEnded = false;
     private Quaternion originRotation;
     private float uiInput = 0f;
 
@@ -36,20 +49,28 @@ public class IcebreakerController : MonoBehaviour
         isGameEnded = false;
         Time.timeScale = 1f;
         endGameScreen.SetActive(false);
-        originRotation = transform.rotation;
 
+        // Включаем игровой UI на старте, на случай если он был выключен в редакторе
+        if (inGameUiContainer != null)
+        {
+            inGameUiContainer.SetActive(true);
+        }
+
+        originRotation = transform.rotation;
         maxHealth = health;
         UpdateHealthUI();
         UpdateDistanceUI();
+
+        if (cameraRig != null)
+        {
+            cameraAnimator = cameraRig.GetComponent<Animator>();
+        }
     }
 
     void Update()
     {
         if (isGameEnded) return;
-
         Movement();
-
-        // Проверяем условие победы
         if (distanceTraveled < winDistance)
         {
             distanceTraveled += Time.deltaTime;
@@ -57,57 +78,103 @@ public class IcebreakerController : MonoBehaviour
         }
         else
         {
-            // Мы проплыли 100 метров!
-            EndGame(true); // Вызываем конец игры с флагом "победа"
+            EndGame(true);
         }
     }
 
     public void TakeDamage(int damage)
     {
         if (isGameEnded) return;
-
         health -= damage;
         if (health < 0) health = 0;
-
         UpdateHealthUI();
-
         if (health <= 0)
         {
-            EndGame(false); // Вызываем конец игры с флагом "поражение"
+            EndGame(false);
         }
     }
 
-    // ========== НОВЫЙ ЦЕНТРАЛЬНЫЙ МЕТОД КОНЦА ИГРЫ ==========
     private void EndGame(bool isVictory)
     {
-        if (isGameEnded) return; // Защита от повторного вызова
-
+        if (isGameEnded) return;
         isGameEnded = true;
-        Time.timeScale = 0f; // Ставим игру на паузу (важно для анимации монеток)
+        StartCoroutine(EndGameSequence(isVictory));
+    }
 
-        // 1. Рассчитываем награду
+    private IEnumerator ReturnToCenter()
+    {
+        Vector3 targetPosition = new Vector3(0, transform.position.y, transform.position.z);
+        Quaternion targetRotation = Quaternion.identity;
+        float returnSpeed = moveSpeed;
+
+        while (Vector3.Distance(transform.position, targetPosition) > 0.01f || Quaternion.Angle(transform.rotation, targetRotation) > 0.01f)
+        {
+            transform.position = Vector3.Lerp(transform.position, targetPosition, returnSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, returnSpeed * Time.deltaTime);
+            yield return null;
+        }
+
+        transform.position = targetPosition;
+        transform.rotation = targetRotation;
+    }
+
+    private IEnumerator EndGameSequence(bool isVictory)
+    {
+        // === ЧАСТЬ 1: Выключаем UI и запускаем эффекты ===
+
+        // НОВАЯ СТРОКА: Выключаем игровой интерфейс
+        if (inGameUiContainer != null)
+        {
+            inGameUiContainer.SetActive(false);
+        }
+
+        StopMovement();
+
+        if (lightController != null)
+        {
+            lightController.StartTransition();
+        }
+
+        yield return StartCoroutine(ReturnToCenter());
+
+        // === ЧАСТЬ 2: Анимация камеры и подготовка UI ===
+        Time.timeScale = 0f;
+        endGameScreen.SetActive(false);
+
+        if (cameraRig != null && cameraAnimator != null)
+        {
+            cameraRig.position = transform.position;
+            cameraRig.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
+            cameraAnimator.SetTrigger("StartEndAnimation");
+        }
+
+        // === ЧАСТЬ 3: Пауза ===
+        yield return new WaitForSecondsRealtime(endScreenDelay);
+
+        // === ЧАСТЬ 4: Отображение экрана конца игры ===
+        endGameScreen.SetActive(true);
         int coinsToAward = health * 2;
 
-        // 2. Настраиваем текст на финальном экране
         if (isVictory)
         {
             titleText.text = "Победа!";
         }
         else
         {
-            titleText.text = "Поражение";
+            titleText.text = "Корабль потоплен";
         }
 
         int finalDistance = Mathf.FloorToInt(distanceTraveled);
         detailsText.text = "Пройденное расстояние: " + finalDistance + " м\n" +
                            "Заработано монеток: " + coinsToAward;
 
-        // 3. Показываем экран и запускаем анимацию монеток
-        endGameScreen.SetActive(true);
-        coinRewardController.StartRewardSequence(coinsToAward);
+        if (coinRewardController != null)
+        {
+            coinRewardController.StartRewardSequence(coinsToAward);
+        }
     }
 
-    #region Старые методы (движение, UI, и т.д.)
+    #region UI & Movement Methods
     void UpdateHealthUI()
     {
         if (healthText != null)
@@ -128,9 +195,11 @@ public class IcebreakerController : MonoBehaviour
     {
         float keyboardInput = Input.GetAxis("Horizontal");
         float horizontalInput = Mathf.Clamp(keyboardInput + uiInput, -1f, 1f);
+
         Vector3 newPosition = transform.position + Vector3.right * horizontalInput * moveSpeed * Time.deltaTime;
         newPosition.x = Mathf.Clamp(newPosition.x, minX, maxX);
         transform.position = newPosition;
+
         Tilt(horizontalInput);
     }
 
@@ -138,6 +207,7 @@ public class IcebreakerController : MonoBehaviour
     {
         float tilt = Mathf.Lerp(0, maxTiltAngle, Mathf.Abs(horizontalInput));
         float rotation = Mathf.Lerp(0, maxRotation, Mathf.Abs(horizontalInput));
+
         originRotation = Quaternion.Euler(0, rotation * horizontalInput, tilt * horizontalInput);
         transform.rotation = Quaternion.Slerp(transform.rotation, originRotation, tiltSpeed * Time.deltaTime);
     }

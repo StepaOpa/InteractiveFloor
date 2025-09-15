@@ -9,6 +9,10 @@ TagManager:
   - Obstacle
   - Iceberg
   - Diggable
+  - WinZone
+  - Trap
+  - Net
+  - ValuableStone
   layers:
   - Default
   - TransparentFX
@@ -17,7 +21,7 @@ TagManager:
   - Water
   - UI
   - Debris
-  - 
+  - Stone
   - 
   - 
   - 

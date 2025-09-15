@@ -19,12 +19,8 @@ public class CoinRewardController : MonoBehaviour
     private List<GameObject> spawnedCoins = new List<GameObject>();
 
     // Главный публичный метод, который мы будем вызывать извне (например, из EndGamePanelUI)
-    // ИЗМЕНЕНО: Теперь метод принимает количество монет (очков) как аргумент
     public void StartRewardSequence(int numberOfCoins)
     {
-        // УБРАНО: Возвращаем случайное количество от 1 до 10
-        // int numberOfCoins = Random.Range(1, 11); 
-
         // Запускаем всю последовательность
         StartCoroutine(RewardSequenceCoroutine(numberOfCoins));
     }
