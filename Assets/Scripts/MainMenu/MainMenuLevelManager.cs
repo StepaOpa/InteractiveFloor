@@ -3,18 +3,18 @@ using UnityEngine.SceneManagement;
 
 public static class MainMenuLevelManager
 {
-    // Флаг для сброса счета, который мы сделали ранее
+    // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
     public static bool shouldResetScoreOnLoad = false;
 
     private static string[] levelScenes =
     {
-        "Stones",             // Индекс 0
-        "Labyrinth",          // Индекс 1
-        "Petroglyphs_new",    // Индекс 2
-        "Mogilnik_new",       // Индекс 3
-        "Game4_SceneName",    // Индекс 4
-        "Icebreaker_new",     // Индекс 5
-        "Game7_SceneName"     // Индекс 6
+        "Seids",             // пїЅпїЅпїЅпїЅпїЅпїЅ 0
+        "Labyrinth",          // пїЅпїЅпїЅпїЅпїЅпїЅ 1
+        "Petroglyphs_new",    // пїЅпїЅпїЅпїЅпїЅпїЅ 2
+        "Mogilnik_new",       // пїЅпїЅпїЅпїЅпїЅпїЅ 3
+        "Game4_SceneName",    // пїЅпїЅпїЅпїЅпїЅпїЅ 4
+        "Icebreaker_new",     // пїЅпїЅпїЅпїЅпїЅпїЅ 5
+        "Game7_SceneName"     // пїЅпїЅпїЅпїЅпїЅпїЅ 6
     };
 
     public static int currentLevelIndex = 0;
@@ -39,20 +39,20 @@ public static class MainMenuLevelManager
         SceneManager.LoadScene(levelScenes[currentLevelIndex]);
     }
 
-    // НОВЫЙ МЕТОД: для запуска игры с определенного уровня
+    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     public static void StartSpecificLevel(int levelIndex)
     {
-        // Проверяем, что нам не передали неверный номер уровня
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         if (levelIndex >= 0 && levelIndex < levelScenes.Length)
         {
-            // Устанавливаем текущий индекс, чтобы игра знала, откуда продолжать
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             currentLevelIndex = levelIndex;
-            // Загружаем сцену по этому индексу
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             SceneManager.LoadScene(levelScenes[currentLevelIndex]);
         }
         else
         {
-            Debug.LogError("Попытка запустить несуществующий уровень с индексом: " + levelIndex);
+            Debug.LogError("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " + levelIndex);
         }
     }
 }

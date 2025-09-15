@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: 6f84e5ae463dc1742b9c05a824bf38c7
   - enabled: 1
+    path: Assets/Scenes/Seids.unity
+    guid: 1c07abb0bc0714741897b5c40b8d7343
+  - enabled: 1
     path: Assets/Scenes/Labyrinth.unity
     guid: d0daa447d879a0449b26ada0d03a5bb4
   - enabled: 1
@@ -20,9 +23,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Petroglyphs_new.unity
     guid: c5a7436d893c1064a8734d699baf0b3c
-  - enabled: 1
-    path: Assets/Scenes/Stones.unity
-    guid: 1c07abb0bc0714741897b5c40b8d7343
   - enabled: 1
     path: Assets/Scenes/TotalScoreScene.unity
     guid: 7f3286d47411cee4695783069c3a25c1

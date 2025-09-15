@@ -20,27 +20,25 @@ public class MainMenuController : MonoBehaviour
     {
         if (coinsText != null)
         {
-            coinsText.text = "Монеты: " + CoinManager.GetCoins();
+            coinsText.text = "пїЅпїЅпїЅпїЅпїЅпїЅ: " + CoinManager.GetCoins();
         }
     }
 
-    // Этот метод для большой кнопки "Начать игру"
+    // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ"
     public void StartGame()
     {
-        // Сначала сбрасываем счет
         CoinManager.ResetCoins();
         UpdateCoinsDisplay();
-        // Потом запускаем самый первый уровень
         MainMenuLevelManager.StartFirstLevel();
     }
 
-    // НОВЫЙ МЕТОД: для маленьких кнопок выбора уровня
+    // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     public void StartLevel(int levelIndex)
     {
-        // Тоже сбрасываем счет
+        // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         CoinManager.ResetCoins();
         UpdateCoinsDisplay();
-        // И запускаем игру с ВЫБРАННОГО уровня
+        // пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         MainMenuLevelManager.StartSpecificLevel(levelIndex);
     }
 
