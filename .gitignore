@@ -100,3 +100,5 @@ InitTestScene*.unity*
 
 # PSD large files
 .psd
+Assets/Textures/
+Assets/Sprites/

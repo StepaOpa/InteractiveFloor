@@ -753,6 +753,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 338770371241573353, guid: 3f47c3c06a0bdf141815f57f9566d7a9, type: 3}
+      propertyPath: m_SortingOrder
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 357845910033772724, guid: 3f47c3c06a0bdf141815f57f9566d7a9, type: 3}
       propertyPath: m_Name
       value: DebugCanvas
