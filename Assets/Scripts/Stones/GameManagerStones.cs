@@ -78,7 +78,7 @@ public class GameManagerStones : MonoBehaviour
 
     void UpdateCoinText()
     {
-        coinText.text = $"Собрано ценных камней: {coins}/{targetCoins}";
+        coinText.text = $"РЎРѕР±СЂР°РЅРѕ РЎРµР№РґРѕРІ: {coins}/{targetCoins}";
     }
 
     void UpdateTimeText()
@@ -96,7 +96,7 @@ public class GameManagerStones : MonoBehaviour
         isGameActive = false;
         if (spawner != null) spawner.StopSpawning();
         gameplayUiContainer.SetActive(false);
-        // Передаем награду (targetCoins) в панель
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (targetCoins) пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         endGamePanel.ShowPanel(true, targetCoins);
 
         if (coinRewardController != null)
@@ -110,7 +110,7 @@ public class GameManagerStones : MonoBehaviour
         isGameActive = false;
         if (spawner != null) spawner.StopSpawning();
         gameplayUiContainer.SetActive(false);
-        // Передаем 0 монет в панель
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ 0 пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         endGamePanel.ShowPanel(false, 0);
     }
 }

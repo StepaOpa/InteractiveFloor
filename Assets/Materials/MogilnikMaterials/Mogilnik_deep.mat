@@ -27,10 +27,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _LAYEREDLIT_3_LAYERS
-  - _MASKMAP1
   - _MASKMAP2
-  - _NORMALMAP1
-  - _NORMALMAP2
   - _NORMALMAP_TANGENT_SPACE0
   - _NORMALMAP_TANGENT_SPACE1
   - _NORMALMAP_TANGENT_SPACE2
