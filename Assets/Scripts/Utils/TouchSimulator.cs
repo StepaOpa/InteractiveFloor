@@ -23,10 +23,16 @@ public class TouchSimulator : MonoBehaviour
             return;
         }
 
-        // Обработка UI
+        // Создаем PointerEventData с правильными параметрами
         PointerEventData pointerData = new PointerEventData(EventSystem.current);
         pointerData.position = screenPosition;
-        pointerData.pointerId = -1; // Используем отрицательный ID для симулированных касаний
+        pointerData.pointerId = 0; // Используем положительный ID
+        pointerData.button = PointerEventData.InputButton.Left;
+        pointerData.delta = Vector2.zero;
+        pointerData.scrollDelta = Vector2.zero;
+        pointerData.pressPosition = screenPosition;
+        pointerData.clickTime = Time.time;
+        pointerData.clickCount = 1;
 
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(pointerData, results);
@@ -36,8 +42,8 @@ public class TouchSimulator : MonoBehaviour
             GameObject target = results[0].gameObject;
             Debug.Log($"UI клик по: {target.name}");
 
-            // Универсальная обработка UI элементов
-            HandleUIElement(target, pointerData);
+            // Выполняем полную последовательность событий для корректной работы кнопок
+            ExecutePointerEvents(target, pointerData);
 
             // Также проверяем родительские объекты на наличие кнопок
             Transform parent = target.transform.parent;
@@ -47,7 +53,7 @@ public class TouchSimulator : MonoBehaviour
                 if (parentButton != null && parentButton.interactable)
                 {
                     Debug.Log($"Нажатие родительской кнопки: {parent.name}");
-                    parentButton.onClick.Invoke();
+                    ExecutePointerEvents(parent.gameObject, pointerData);
                     break; // Останавливаемся на первой найденной родительской кнопке
                 }
                 parent = parent.parent;
@@ -95,9 +101,9 @@ public class TouchSimulator : MonoBehaviour
     }
 
     /// <summary>
-    /// Универсальный метод для обработки UI элементов
+    /// Выполняет полную последовательность событий указателя для корректной работы UI элементов
     /// </summary>
-    private void HandleUIElement(GameObject target, PointerEventData pointerData)
+    private void ExecutePointerEvents(GameObject target, PointerEventData pointerData)
     {
         // Проверяем различные типы UI элементов
         Button button = target.GetComponent<Button>();
@@ -109,27 +115,42 @@ public class TouchSimulator : MonoBehaviour
         if (button != null && button.interactable)
         {
             Debug.Log($"Нажатие кнопки: {target.name}");
+
+            // Выполняем полную последовательность событий для кнопки
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerDownHandler);
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerClickHandler);
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerUpHandler);
+
+            // Дополнительно вызываем onClick напрямую для гарантии
             button.onClick.Invoke();
         }
         else if (toggle != null && toggle.interactable)
         {
             Debug.Log($"Переключение Toggle: {target.name}");
-            toggle.isOn = !toggle.isOn;
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerDownHandler);
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerClickHandler);
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerUpHandler);
         }
         else if (slider != null && slider.interactable)
         {
             Debug.Log($"Взаимодействие со Slider: {target.name}");
-            // Для слайдера можно добавить логику изменения значения
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerDownHandler);
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerClickHandler);
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerUpHandler);
         }
         else if (inputField != null && inputField.interactable)
         {
             Debug.Log($"Фокус на InputField: {target.name}");
-            inputField.Select();
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerDownHandler);
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerClickHandler);
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerUpHandler);
         }
         else if (dropdown != null && dropdown.interactable)
         {
             Debug.Log($"Открытие Dropdown: {target.name}");
-            dropdown.Show();
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerDownHandler);
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerClickHandler);
+            ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerUpHandler);
         }
         else
         {
@@ -137,6 +158,99 @@ public class TouchSimulator : MonoBehaviour
             ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerDownHandler);
             ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerClickHandler);
             ExecuteEvents.Execute(target, pointerData, ExecuteEvents.pointerUpHandler);
+        }
+    }
+
+    /// <summary>
+    /// Универсальный метод для обработки UI элементов (устаревший, используется ExecutePointerEvents)
+    /// </summary>
+    private void HandleUIElement(GameObject target, PointerEventData pointerData)
+    {
+        ExecutePointerEvents(target, pointerData);
+    }
+
+    /// <summary>
+    /// Специальный метод для вызова методов OnPointerDown* из PlayerControllerLabyrinth
+    /// </summary>
+    public void SimulateButtonClick(string buttonName)
+    {
+        // Ищем PlayerControllerLabyrinth в сцене
+        PlayerControllerLabyrinth playerController = FindFirstObjectByType<PlayerControllerLabyrinth>();
+        if (playerController == null)
+        {
+            Debug.LogWarning("PlayerControllerLabyrinth не найден в сцене!");
+            return;
+        }
+
+        // Вызываем соответствующий метод в зависимости от имени кнопки
+        switch (buttonName.ToLower())
+        {
+            case "forward":
+            case "вперед":
+                playerController.OnPointerDownForward();
+                Debug.Log("Симулировано нажатие кнопки 'Вперед'");
+                break;
+            case "back":
+            case "назад":
+                playerController.OnPointerDownBack();
+                Debug.Log("Симулировано нажатие кнопки 'Назад'");
+                break;
+            case "left":
+            case "влево":
+                playerController.OnPointerDownLeft();
+                Debug.Log("Симулировано нажатие кнопки 'Влево'");
+                break;
+            case "right":
+            case "вправо":
+                playerController.OnPointerDownRight();
+                Debug.Log("Симулировано нажатие кнопки 'Вправо'");
+                break;
+            default:
+                Debug.LogWarning($"Неизвестное имя кнопки: {buttonName}");
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Улучшенный метод ClickAt с автоматическим распознаванием кнопок управления
+    /// </summary>
+    public void ClickAtWithSmartDetection(Vector2 screenPosition)
+    {
+        // Сначала пробуем стандартный метод
+        ClickAt(screenPosition);
+
+        // Дополнительно проверяем, не является ли это кнопкой управления
+        if (EventSystem.current == null) return;
+
+        PointerEventData pointerData = new PointerEventData(EventSystem.current);
+        pointerData.position = screenPosition;
+        pointerData.pointerId = 0;
+
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(pointerData, results);
+
+        if (results.Count > 0)
+        {
+            GameObject target = results[0].gameObject;
+            string objectName = target.name.ToLower();
+
+            // Проверяем, содержит ли имя объекта ключевые слова для кнопок управления
+            if (objectName.Contains("forward") || objectName.Contains("вперед") || objectName.Contains("up"))
+            {
+                SimulateButtonClick("forward");
+            }
+            else if (objectName.Contains("back") || objectName.Contains("назад") || objectName.Contains("down"))
+            {
+                SimulateButtonClick("back");
+            }
+            else if (objectName.Contains("left") || objectName.Contains("влево"))
+            {
+                SimulateButtonClick("left");
+            }
+            else if (objectName.Contains("right") || objectName.Contains("вправо"))
+            {
+                SimulateButtonClick("right");
+            }
         }
     }
 
