@@ -12,7 +12,17 @@ public class Digger : MonoBehaviour
 
     void Update()
     {
-        // По-прежнему проверяем, зажата ли левая кнопка мыши
+        // --- НОВАЯ ПРОВЕРКА ---
+        // Перед тем как что-либо делать, проверяем, не активен ли режим осмотра.
+        // Если да - полностью игнорируем все дальнейшие действия в этом кадре.
+        if (InspectionUI.Instance != null && InspectionUI.Instance.IsInspectionUIActive())
+        {
+            return; // Немедленно выходим из метода Update
+        }
+        // --- КОНЕЦ ПРОВЕРКИ ---
+
+        // Весь остальной код остается без изменений.
+        // Он выполнится, только если проверка выше не сработала.
         if (Input.GetMouseButton(0))
         {
             if (EventSystem.current.IsPointerOverGameObject())
@@ -23,10 +33,6 @@ public class Digger : MonoBehaviour
             Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
-            // --- ГЛАВНОЕ ИЗМЕНЕНИЕ ---
-            // Мы убрали всю логику про 'lastTouchedPile'.
-            // Теперь, если луч попадает в кучку, мы просто вызываем ее метод Dig().
-            // Это будет происходить каждый кадр, пока мышь зажата над кучкой.
             if (Physics.Raycast(ray, out hit))
             {
                 DirtPile currentPile = hit.collider.GetComponent<DirtPile>();

@@ -1,23 +1,21 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+
 public class LevelController : MonoBehaviour
 {
     [Header("Настройки уровней")]
     [SerializeField] private List<GameObject> levelPlanePrefabs = new List<GameObject>();
     [SerializeField] private float levelHeight = 2f;
     [SerializeField] private float startLevelHeight = -0.1f;
-    
+
     [Header("Компоненты игры")]
     [SerializeField] private LevelTimer levelTimer;
     [SerializeField] private GameObject newLevelEffectPrefab;
 
     private List<GameObject> activeLevels = new List<GameObject>();
     private int currentLevelIndex = 0;
-    
-    // Флаг levelIsComplete нам все еще нужен, чтобы не запускать логику завершения много раз
-    private bool levelIsComplete = false; 
-    // А вот флаг diggingPhaseComplete больше не нужен!
+    private bool levelIsComplete = false;
 
     void Start()
     {
@@ -27,7 +25,7 @@ public class LevelController : MonoBehaviour
     void InitializeLevel()
     {
         levelIsComplete = false;
-        
+
         if (UIController.Instance != null)
         {
             UIController.Instance.ResetForNewLevel();
@@ -37,18 +35,27 @@ public class LevelController : MonoBehaviour
         {
             float currentHeight = startLevelHeight + (currentLevelIndex * levelHeight);
             Vector3 spawnPosition = transform.position + new Vector3(0f, currentHeight, 0f);
+
             GameObject level = Instantiate(levelPlanePrefabs[currentLevelIndex], spawnPosition, Quaternion.identity, transform);
             level.name = $"Level_{currentLevelIndex + 1}";
             activeLevels.Add(level);
 
-            if (newLevelEffectPrefab != null && currentLevelIndex > 0) 
-            {
-                Instantiate(newLevelEffectPrefab, spawnPosition, Quaternion.identity);
-            }
-
             LevelPlane levelPlane = level.GetComponent<LevelPlane>();
             if (levelPlane != null)
             {
+                // --- ИЗМЕНЕННЫЙ БЛОК ---
+                // Создаем эффект перехода ДО генерации земли, но уже зная, на какой высоте она будет
+                if (newLevelEffectPrefab != null && currentLevelIndex > 0)
+                {
+                    // Вычисляем позицию для эффекта: базовая позиция + высота слоя земли + небольшой запас (0.1f)
+                    Vector3 effectPosition = spawnPosition + new Vector3(0, levelPlane.DirtHeightOffset + 0.1f, 0);
+
+                    // Создаем эффект в новой, приподнятой точке
+                    Instantiate(newLevelEffectPrefab, effectPosition, Quaternion.identity);
+                }
+                // --- КОНЕЦ ИЗМЕНЕННОГО БЛОКА ---
+
+                // Теперь генерируем сам уровень
                 levelPlane.GenerateLevel();
                 int valuableItems = levelPlane.GetTotalItemsCount();
                 if (UIController.Instance != null)
@@ -57,7 +64,7 @@ public class LevelController : MonoBehaviour
                 }
             }
         }
-        
+
         if (levelTimer != null)
         {
             levelTimer.StartTimer();
@@ -77,47 +84,39 @@ public class LevelController : MonoBehaviour
         }
     }
 
-    // --- ПОЛНОСТЬЮ ПЕРЕПИСАННЫЙ МЕТОД ---
     private void CheckLevelCompletion()
     {
         if (activeLevels.Count <= 0 || currentLevelIndex >= activeLevels.Count) return;
         GameObject currentLevelObject = activeLevels[currentLevelIndex];
         if (currentLevelObject == null) return;
 
-        // ШАГ 1: Проверяем предметы, которые уже выкопаны и лежат на земле.
         CollectableItem[] activeItems = currentLevelObject.GetComponentsInChildren<CollectableItem>();
         foreach (CollectableItem item in activeItems)
         {
-            // Если находим хотя бы один ценный предмет, значит, играть еще нужно.
             if (item.itemValue > 0)
             {
-                return; // Выходим из проверки, уровень не пройден.
+                return;
             }
         }
 
-        // ШАГ 2: Если мы дошли сюда, значит, среди выкопанных предметов ценных нет.
-        // Теперь нужно проверить, не остались ли ценные предметы под землей.
         DigSpot[] remainingDigSpots = currentLevelObject.GetComponentsInChildren<DigSpot>();
         foreach (DigSpot spot in remainingDigSpots)
         {
             if (spot.hiddenItemPrefab != null)
             {
                 CollectableItem hiddenItemInfo = spot.hiddenItemPrefab.GetComponent<CollectableItem>();
-                // Если находим хотя бы один закопанный ценный предмет...
                 if (hiddenItemInfo != null && hiddenItemInfo.itemValue > 0)
                 {
-                    return; // ...то уровень тоже еще не пройден.
+                    return;
                 }
             }
         }
 
-        // ШАГ 3: Если код дошел до этой точки, это значит, что мы не нашли
-        // ценных предметов ни на земле, ни под землей. Уровень пройден!
         levelIsComplete = true;
         Debug.Log("Все ценные предметы собраны! Уровень пройден, игнорируем закопанный мусор.");
         CompleteCurrentLevel();
     }
-    
+
     private void CompleteCurrentLevel()
     {
         if (SoundManager.Instance != null)
@@ -129,34 +128,30 @@ public class LevelController : MonoBehaviour
         {
             levelTimer.StopTimer();
         }
-        
-        // Теперь этот метод уничтожит и выкопанный мусор, и закопанный
+
         ClearRemainingLevelObjects();
 
         if (currentLevelIndex < activeLevels.Count && activeLevels[currentLevelIndex] != null)
         {
             Destroy(activeLevels[currentLevelIndex]);
         }
-        
+
         currentLevelIndex++;
         MoveToNextLevel();
     }
-    
-    // --- УЛУЧШЕННЫЙ МЕТОД ОЧИСТКИ ---
+
     private void ClearRemainingLevelObjects()
     {
         if (activeLevels.Count <= 0 || currentLevelIndex >= activeLevels.Count) return;
         GameObject currentLevelObject = activeLevels[currentLevelIndex];
         if (currentLevelObject == null) return;
 
-        // Уничтожаем оставшийся выкопанный мусор
         CollectableItem[] remainingItems = currentLevelObject.GetComponentsInChildren<CollectableItem>();
         foreach (CollectableItem item in remainingItems)
         {
             Destroy(item.gameObject);
         }
-        
-        // Уничтожаем оставшиеся точки копания (в которых спрятан мусор)
+
         DigSpot[] remainingSpots = currentLevelObject.GetComponentsInChildren<DigSpot>();
         foreach (DigSpot spot in remainingSpots)
         {
@@ -170,7 +165,7 @@ public class LevelController : MonoBehaviour
         {
             UIController.Instance.SetCurrentLevel(currentLevelIndex + 1);
         }
-        
+
         if (currentLevelIndex >= levelPlanePrefabs.Count)
         {
             OnAllLevelsCompleted();
@@ -180,7 +175,6 @@ public class LevelController : MonoBehaviour
             InitializeLevel();
         }
     }
-
 
     public int GetTotalLevelCount()
     {

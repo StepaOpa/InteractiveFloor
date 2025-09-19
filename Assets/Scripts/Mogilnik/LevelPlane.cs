@@ -31,6 +31,10 @@ public class LevelPlane : MonoBehaviour
     private List<Vector3> spawnedItemPositions = new List<Vector3>();
     private int valuableItemsCount = 0;
 
+    // --- ДОБАВЛЕНО ---
+    // Публичное свойство, чтобы другие скрипты могли безопасно узнать высоту слоя земли
+    public float DirtHeightOffset => dirtHeightOffset;
+
     public int GetTotalItemsCount()
     {
         return valuableItemsCount;
@@ -98,28 +102,20 @@ public class LevelPlane : MonoBehaviour
     // Метод для создания сетки из кучек земли
     private void GenerateDirtGrid()
     {
-        // Проходим по всей площадке с заданным шагом
         for (float x = minX; x <= maxX; x += gridSpacing)
         {
             for (float z = minZ; z <= maxZ; z += gridSpacing)
             {
-                // 1. Выбираем случайный индекс из списка префабов кучек
                 int randomIndex = Random.Range(0, dirtPilePrefabs.Count);
-
-                // 2. Получаем префаб по этому случайному индексу
                 GameObject randomDirtPrefab = dirtPilePrefabs[randomIndex];
 
-                // Проверяем, не оказался ли случайный префаб пустым (на всякий случай)
                 if (randomDirtPrefab == null)
                 {
                     Debug.LogWarning($"[LevelPlane] В списке 'Dirt Pile Prefabs' есть пустой элемент с индексом {randomIndex}. Пропускаю его.");
                     continue;
                 }
 
-                // 3. Вычисляем позицию для создания кучки
                 Vector3 dirtPosition = new Vector3(x, transform.position.y + dirtHeightOffset, z);
-
-                // 4. Создаем экземпляр этого случайного префаба
                 Instantiate(randomDirtPrefab, dirtPosition, Quaternion.identity, transform);
             }
         }
