@@ -5,84 +5,36 @@ using System.Linq;
 
 
 /// <summary>
-/// Кастомный редактор для компонента WaypointLabyrinth.
-/// Добавляет визуальные подсказки в инспекторе и в окне сцены.
+/// Умный инструмент для автоматического соединения точек лабиринта.
+/// Находится в меню "Tools/Labyrinth/Auto-Connect Waypoints (Advanced)".
 /// </summary>
-[CustomEditor(typeof(WaypointLabyrinth))]
-public class WaypointLabyrinthEditor : Editor
-{
-    /// <summary>
-    /// Рисует кастомный интерфейс в инспекторе.
-    /// </summary>
-    public override void OnInspectorGUI()
-    {
-        DrawDefaultInspector();
-
-        WaypointLabyrinth waypoint = (WaypointLabyrinth)target;
-
-        if (waypoint.neighbors.Count != waypoint.GetDesiredNeighborCount())
-        {
-            string message = $"Эта точка имеет тип '{waypoint.Type}' и должна иметь {waypoint.GetDesiredNeighborCount()} соседа(ей), но сейчас у нее {waypoint.neighbors.Count}.";
-            EditorGUILayout.HelpBox(message, MessageType.Warning);
-        }
-    }
-
-    /// <summary>
-    /// Этот метод отвечает за отрисовку Гизмо в окне сцены для WaypointLabyrinth.
-    /// </summary>
-    [DrawGizmo(GizmoType.NonSelected | GizmoType.Selected | GizmoType.Pickable)]
-    public static void OnDrawSceneGizmo(WaypointLabyrinth waypoint, GizmoType gizmoType)
-    {
-        // Устанавливаем цвет в зависимости от типа точки
-        switch (waypoint.Type)
-        {
-            case WaypointType.Standard:
-                Gizmos.color = new Color(0, 0.8f, 1f, 0.7f); // Голубой
-                break;
-            case WaypointType.Intersection:
-                Gizmos.color = new Color(0, 1f, 0, 0.7f);   // Зеленый
-                break;
-            case WaypointType.DeadEnd:
-                Gizmos.color = new Color(1f, 0, 0, 0.7f);     // Красный
-                break;
-        }
-
-        // <<< ИЗМЕНЕНИЕ ЗДЕСЬ: Уменьшаем радиус сферы >>>
-        // Раньше было 0.2f, теперь 0.05f. Можете поставить любое другое значение.
-        Gizmos.DrawSphere(waypoint.transform.position, 0.05f);
-
-        // Рисуем линии к соседям
-        Gizmos.color = new Color(1f, 0.9f, 0, 0.5f); // Желтый
-        if (waypoint.neighbors != null)
-        {
-            foreach (var neighbor in waypoint.neighbors)
-            {
-                if (neighbor != null)
-                {
-                    Gizmos.DrawLine(waypoint.transform.position, neighbor.transform.position);
-                }
-            }
-        }
-    }
-}
-
-
-/// <summary>
-/// Класс-инструмент для автоматического соединения точек лабиринта в редакторе.
-/// </summary>
-public class WaypointConnector
+[InitializeOnLoad] // Этот атрибут нужен, чтобы класс был активен в редакторе
+public class WaypointEditor
 {
     private const float MaxConnectionDistance = 5f;
 
-    [MenuItem("Tools/Labyrinth/Auto-Connect Waypoints")]
+    [MenuItem("Tools/Labyrinth/Auto-Connect Waypoints (Advanced)")]
     public static void AutoConnectWaypoints()
     {
-        WaypointLabyrinth[] allWaypoints = GameObject.FindObjectsOfType<WaypointLabyrinth>();
-        var candidates = new Dictionary<WaypointLabyrinth, List<WaypointLabyrinth>>();
+        Debug.Log("Запуск улучшенного алгоритма авто-соединения...");
 
+        WaypointLabyrinth[] allWaypoints = GameObject.FindObjectsOfType<WaypointLabyrinth>();
+        if (allWaypoints.Length == 0)
+        {
+            Debug.LogWarning("На сцене не найдено ни одной точки (WaypointLabyrinth).");
+            return;
+        }
+
+        // Шаг 0: Очистка
         foreach (var wp in allWaypoints)
         {
-            wp.neighbors.Clear();
+            if (wp.neighbors != null) wp.neighbors.Clear();
+        }
+
+        // Шаг 1: Поиск всех потенциальных соседей
+        var candidates = new Dictionary<WaypointLabyrinth, List<WaypointLabyrinth>>();
+        foreach (var wp in allWaypoints)
+        {
             var potentialNeighbors = allWaypoints
                 .Where(other => other != wp && Vector3.Distance(wp.transform.position, other.transform.position) <= MaxConnectionDistance)
                 .OrderBy(other => Vector3.Distance(wp.transform.position, other.transform.position))
@@ -90,33 +42,76 @@ public class WaypointConnector
             candidates[wp] = potentialNeighbors;
         }
 
-        foreach (var wp in allWaypoints.Where(p => p.Type == WaypointType.Intersection || p.Type == WaypointType.DeadEnd))
+        // Шаг 2: Соединение "якорей" (сначала тупики, потом перекрестки для стабильности)
+        var priorityWaypoints = allWaypoints
+            .Where(p => p.Type == WaypointType.Intersection || p.Type == WaypointType.DeadEnd)
+            .OrderBy(p => p.Type); // Сначала DeadEnd, потом Intersection - это важно!
+
+        foreach (var wp in priorityWaypoints)
         {
             int desiredCount = wp.GetDesiredNeighborCount();
-            var bestCandidates = candidates[wp].Take(desiredCount);
+            var bestCandidates = candidates[wp]
+                .Where(c => c.neighbors.Count < c.GetDesiredNeighborCount())
+                .Take(desiredCount - wp.neighbors.Count);
+
             foreach (var candidate in bestCandidates)
             {
                 ConnectPair(wp, candidate);
             }
         }
 
-        foreach (var wp in allWaypoints.Where(p => p.Type == WaypointType.Standard))
+        // Шаг 3: "Волновое" построение коридоров с учетом направления
+        var processingQueue = new Queue<WaypointLabyrinth>();
+
+        // Находим стартовые точки
+        foreach (var wp in allWaypoints.Where(p => p.Type == WaypointType.Standard && p.neighbors.Count == 1))
         {
-            int desiredCount = wp.GetDesiredNeighborCount();
-            var availableCandidates = candidates[wp]
-                .Where(c => c.neighbors.Count < c.GetDesiredNeighborCount())
-                .Take(desiredCount - wp.neighbors.Count);
-            foreach (var candidate in availableCandidates)
+            processingQueue.Enqueue(wp);
+        }
+
+        while (processingQueue.Count > 0)
+        {
+            var currentWp = processingQueue.Dequeue();
+
+            if (currentWp.neighbors.Count >= currentWp.GetDesiredNeighborCount())
             {
-                ConnectPair(wp, candidate);
+                continue;
+            }
+
+            // --- КЛЮЧЕВОЕ УЛУЧШЕНИЕ ЗДЕСЬ ---
+            // Определяем направление, откуда мы пришли
+            var previousWp = currentWp.neighbors[0];
+            Vector3 forwardDirection = (currentWp.transform.position - previousWp.transform.position).normalized;
+
+            // Ищем лучшего соседа, который продолжает это направление
+            var nextNeighbor = candidates[currentWp]
+                .Where(c =>
+                    c.Type == WaypointType.Standard &&
+                    c.neighbors.Count < c.GetDesiredNeighborCount() &&
+                    !currentWp.neighbors.Contains(c)
+                )
+                // Сортируем кандидатов: чем ближе направление к "прямо", тем лучше
+                .OrderByDescending(c => Vector3.Dot(forwardDirection, (c.transform.position - currentWp.transform.position).normalized))
+                .FirstOrDefault();
+
+            if (nextNeighbor != null)
+            {
+                ConnectPair(currentWp, nextNeighbor);
+                // Если новая точка еще не заполнена, добавляем ее в очередь для продолжения коридора
+                if (nextNeighbor.neighbors.Count < nextNeighbor.GetDesiredNeighborCount())
+                {
+                    processingQueue.Enqueue(nextNeighbor);
+                }
             }
         }
 
+        // Финальный шаг: Сохранение
         foreach (var wp in allWaypoints)
         {
             EditorUtility.SetDirty(wp);
         }
-        Debug.Log($"Авто-соединение завершено! Обработано {allWaypoints.Length} точек.");
+
+        Debug.Log($"Авто-соединение завершено! Обработано {allWaypoints.Length} точек. Алгоритм: Advanced.");
     }
 
     private static void ConnectPair(WaypointLabyrinth a, WaypointLabyrinth b)
