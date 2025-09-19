@@ -7,7 +7,7 @@ public class WorldController : MonoBehaviour
     [Header("Настройки чанков")]
     [SerializeField] private GameObject chunkPrefab;
     [SerializeField] private GameObject crackedChunkPrefab;
-    [SerializeField] private int groundWidth = 2;
+    [SerializeField] private int groundWidth = 4;
     [SerializeField] private float chunkLength = 40f;
 
     [Header("Настройки стен")]
@@ -82,7 +82,7 @@ public class WorldController : MonoBehaviour
 
                 if (wallPrefabs != null && wallPrefabs.Length > 0)
                 {
-                    int randomIndex = UnityEngine.Random.Range(0, wallPrefabs.Length);
+                    int randomIndex = Random.Range(0, wallPrefabs.Length);
                     GameObject randomWallPrefab = wallPrefabs[randomIndex];
 
                     Vector3 baseLeftPos = new Vector3(leftWallXPosition, 0, z);
