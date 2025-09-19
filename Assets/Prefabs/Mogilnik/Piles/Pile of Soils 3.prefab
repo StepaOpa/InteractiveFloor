@@ -137,5 +137,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   touchesToLower: 3
-  heightStep: 0.3
-  digCooldown: 0.05
+  heightStep: 0.1
+  digCooldown: 0.03
