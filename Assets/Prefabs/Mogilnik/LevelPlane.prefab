@@ -124,19 +124,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e2450db9f16ed54eaaaa7b1770f3019, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dirtPilePrefab: {fileID: 1828205332826244779, guid: 3b809e65ac40e224d94ca7a8bcbab862, type: 3}
+  dirtPilePrefabs:
+  - {fileID: 1828205332826244779, guid: 3b809e65ac40e224d94ca7a8bcbab862, type: 3}
+  - {fileID: 1828205332826244779, guid: 0a70832ce392bbe4e903fc917484ee87, type: 3}
+  - {fileID: 1828205332826244779, guid: bea6be41dcb9f5046ac6aee23e8c762a, type: 3}
+  - {fileID: 1828205332826244779, guid: eafef9ed377707642b5b2f603be60bf4, type: 3}
   possibleItemPrefabs:
   - {fileID: 6265487342830748791, guid: 809231116eb8bc740b7f7146995ab481, type: 3}
-  - {fileID: 8582826690379079093, guid: f6a1a62a0e236b24bbeb8eb694a827e7, type: 3}
-  - {fileID: 2085497318346961155, guid: e9cc9cba87bc8cd4fae42b054b7a3a7d, type: 3}
-  - {fileID: 5107546137790270368, guid: b286f375081d4234483c14eced1066b7, type: 3}
-  - {fileID: 585340726003276542, guid: 22048e31393221b418e3fb0900c8327b, type: 3}
-  - {fileID: 2379802138214940463, guid: 6871a875e8efcd043b3fe2eb8f96db77, type: 3}
+  - {fileID: 5515642316241919371, guid: 172c55bb29bc5f146b3a4d45c2472680, type: 3}
+  - {fileID: 5169467616451057744, guid: f516ee5d92a9ff44bbfd072e22d1764c, type: 3}
+  - {fileID: 4410349802106067236, guid: 75c2db6c56447d542a0b8530b8f77ef2, type: 3}
   itemsToHideCount: 4
   minDistanceBetweenItems: 1
   itemHeightOffset: 0
   gridSpacing: 0.25
-  dirtHeightOffset: 0.3
+  dirtHeightOffset: 0.2
   minX: -2
   maxX: 2
   minZ: -2
