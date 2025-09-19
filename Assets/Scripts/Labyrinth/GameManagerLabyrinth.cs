@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq; // Добавлено для использования .ToList()
 
 public class GameManagerLabyrinth : MonoBehaviour
 {
@@ -30,6 +31,25 @@ public class GameManagerLabyrinth : MonoBehaviour
     [Tooltip("На каком расстоянии от сети рыбка окончательно 'попадется'")]
     public float catchDistanceThreshold = 3.0f;
 
+    // =======================================================================
+    // <<< НОВЫЙ РАЗДЕЛ ДЛЯ СПАВНА ЛОВУШЕК >>>
+    // =======================================================================
+    [Header("Настройки спавна ловушек")]
+    [Tooltip("Префаб объекта-ловушки (сети), который будет создан")]
+    public GameObject netPrefab;
+
+    [Tooltip("Список всех возможных точек, где могут появиться ловушки")]
+    public List<Transform> netSpawnPoints;
+
+    [Tooltip("Минимальное количество ловушек для спавна")]
+    [Range(1, 20)]
+    public int minNetsToSpawn = 5;
+
+    [Tooltip("Максимальное количество ловушек для спавна")]
+    [Range(1, 20)]
+    public int maxNetsToSpawn = 8;
+    // =======================================================================
+
     private int currentFishCount;
     private bool isGameOver = false;
     private Queue<PendingCatch> pendingCatches = new Queue<PendingCatch>();
@@ -40,7 +60,52 @@ public class GameManagerLabyrinth : MonoBehaviour
     {
         currentFishCount = fishObjects.Count;
         UpdateFishCounterUI();
+
+        // <<< ВЫЗОВ НОВОГО МЕТОДА >>>
+        SpawnNets();
     }
+
+    // =======================================================================
+    // <<< НОВЫЙ МЕТОД ДЛЯ СПАВНА ЛОВУШEK >>>
+    // =======================================================================
+    void SpawnNets()
+    {
+        // 1. Проверяем, что все необходимые данные заданы в инспекторе
+        if (netPrefab == null || netSpawnPoints.Count == 0)
+        {
+            Debug.LogError("Префаб ловушки или точки спавна не назначены в GameManagerLabyrinth!");
+            return;
+        }
+
+        // 2. Определяем, сколько ловушек мы хотим создать в этот раз
+        int netsToSpawnCount = Random.Range(minNetsToSpawn, maxNetsToSpawn + 1);
+
+        // 3. Создаем временную копию списка точек, чтобы мы могли удалять из нее использованные
+        List<Transform> availablePoints = netSpawnPoints.ToList();
+
+        // 4. Запускаем цикл для создания ловушек
+        for (int i = 0; i < netsToSpawnCount; i++)
+        {
+            // Если доступных точек не осталось, выходим из цикла раньше времени
+            if (availablePoints.Count == 0)
+            {
+                break;
+            }
+
+            // Выбираем случайный индекс из списка ДОСТУПНЫХ точек
+            int randomIndex = Random.Range(0, availablePoints.Count);
+            // Получаем саму точку по этому индексу
+            Transform spawnPoint = availablePoints[randomIndex];
+
+            // Создаем новый объект-ловушку из префаба
+            // Используем позицию (position) и поворот (rotation) из нашей точки спавна
+            Instantiate(netPrefab, spawnPoint.position, spawnPoint.rotation);
+
+            // Удаляем использованную точку из списка, чтобы не выбрать ее снова
+            availablePoints.RemoveAt(randomIndex);
+        }
+    }
+    // =======================================================================
 
     void Update()
     {
