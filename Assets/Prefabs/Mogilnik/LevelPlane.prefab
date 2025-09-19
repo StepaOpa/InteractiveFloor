@@ -124,7 +124,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e2450db9f16ed54eaaaa7b1770f3019, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  digSpotPrefab: {fileID: 1394666016831433859, guid: 3b4edc9f51bb707f39f6d112657d6331, type: 3}
+  dirtPilePrefab: {fileID: 1828205332826244779, guid: 3b809e65ac40e224d94ca7a8bcbab862, type: 3}
   possibleItemPrefabs:
   - {fileID: 6265487342830748791, guid: 809231116eb8bc740b7f7146995ab481, type: 3}
   - {fileID: 8582826690379079093, guid: f6a1a62a0e236b24bbeb8eb694a827e7, type: 3}
@@ -132,13 +132,15 @@ MonoBehaviour:
   - {fileID: 5107546137790270368, guid: b286f375081d4234483c14eced1066b7, type: 3}
   - {fileID: 585340726003276542, guid: 22048e31393221b418e3fb0900c8327b, type: 3}
   - {fileID: 2379802138214940463, guid: 6871a875e8efcd043b3fe2eb8f96db77, type: 3}
-  digSpotsCount: 2
-  minDistanceBetweenSpots: 1
-  heightOffset: 0.2
-  minX: -1.8
-  maxX: 1.8
-  minZ: -1.8
-  maxZ: 1.8
+  itemsToHideCount: 4
+  minDistanceBetweenItems: 1
+  itemHeightOffset: 0
+  gridSpacing: 0.25
+  dirtHeightOffset: 0.3
+  minX: -2
+  maxX: 2
+  minZ: -2
+  maxZ: 2
 --- !u!114 &3961080565349922147
 MonoBehaviour:
   m_ObjectHideFlags: 0

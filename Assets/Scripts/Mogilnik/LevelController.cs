@@ -49,7 +49,7 @@ public class LevelController : MonoBehaviour
             LevelPlane levelPlane = level.GetComponent<LevelPlane>();
             if (levelPlane != null)
             {
-                levelPlane.GenerateItems();
+                levelPlane.GenerateLevel();
                 int valuableItems = levelPlane.GetTotalItemsCount();
                 if (UIController.Instance != null)
                 {
