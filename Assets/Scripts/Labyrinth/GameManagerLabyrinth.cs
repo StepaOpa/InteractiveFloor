@@ -146,10 +146,10 @@ public class GameManagerLabyrinth : MonoBehaviour
         SceneManager.LoadScene("TotalScoreScene");
     }
 
-    public void OnRestartButtonClicked()
+    private void OnRestartButtonClicked()
     {
         Time.timeScale = 1f;
-        // Ничего не добавляем в копилку
-        MainMenuLevelManager.RestartCurrentLevel();
+        // Получаем текущую активную сцену и загружаем её снова по имени
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
