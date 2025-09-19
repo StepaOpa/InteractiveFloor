@@ -4427,6 +4427,7 @@ MonoBehaviour:
   levelPlanePrefabs:
   - {fileID: 656613501641563271, guid: 7f07629cd0a75cc4085aeb8f2a5e3a2a, type: 3}
   - {fileID: 656613501641563271, guid: 7f07629cd0a75cc4085aeb8f2a5e3a2a, type: 3}
+  - {fileID: 656613501641563271, guid: 7f07629cd0a75cc4085aeb8f2a5e3a2a, type: 3}
   levelHeight: -0.3
   startLevelHeight: 0
   levelTimer: {fileID: 1096909755}

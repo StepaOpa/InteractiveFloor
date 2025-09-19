@@ -139,10 +139,10 @@ public class GameManager : MonoBehaviour
         MainMenuLevelManager.shouldResetScoreOnLoad = true;
         SceneManager.LoadScene("TotalScoreScene");
     }
-
     private void OnRestartButtonClicked()
     {
         Time.timeScale = 1f;
-        MainMenuLevelManager.RestartCurrentLevel();
+        // Получаем текущую активную сцену и загружаем её снова по имени
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
