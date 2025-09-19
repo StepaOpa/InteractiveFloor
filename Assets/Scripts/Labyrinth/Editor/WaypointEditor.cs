@@ -5,53 +5,56 @@ using System.Linq;
 
 
 /// <summary>
-/// Умный инструмент для автоматического соединения точек лабиринта.
-/// Находится в меню "Tools/Labyrinth/Auto-Connect Waypoints (Advanced)".
+/// Финальная версия инструмента для авто-соединения точек лабиринта.
+/// Использует "волновой" алгоритм, основанный на поиске ближайшего соседа (как в отладочной версии).
 /// </summary>
-[InitializeOnLoad] // Этот атрибут нужен, чтобы класс был активен в редакторе
+[InitializeOnLoad]
 public class WaypointEditor
 {
     private const float MaxConnectionDistance = 5f;
 
-    [MenuItem("Tools/Labyrinth/Auto-Connect Waypoints (Advanced)")]
+    [MenuItem("Tools/Labyrinth/Auto-Connect Waypoints (Final)")]
     public static void AutoConnectWaypoints()
     {
-        Debug.Log("Запуск улучшенного алгоритма авто-соединения...");
+        Debug.Log("Запуск финального алгоритма авто-соединения...");
 
-        WaypointLabyrinth[] allWaypoints = GameObject.FindObjectsOfType<WaypointLabyrinth>();
+        // Находим все существующие точки на сцене
+        WaypointLabyrinth[] allWaypoints = GameObject.FindObjectsOfType<WaypointLabyrinth>()
+                                                     .Where(wp => wp != null).ToArray();
+
         if (allWaypoints.Length == 0)
         {
-            Debug.LogWarning("На сцене не найдено ни одной точки (WaypointLabyrinth).");
+            Debug.LogWarning("На сцене не найдено ни одной существующей точки (WaypointLabyrinth).");
             return;
         }
 
-        // Шаг 0: Очистка
+        // Шаг 0: Очистка старых соединений
         foreach (var wp in allWaypoints)
         {
             if (wp.neighbors != null) wp.neighbors.Clear();
         }
 
-        // Шаг 1: Поиск всех потенциальных соседей
+        // Шаг 1: Поиск и кэширование всех потенциальных соседей по дистанции
         var candidates = new Dictionary<WaypointLabyrinth, List<WaypointLabyrinth>>();
         foreach (var wp in allWaypoints)
         {
             var potentialNeighbors = allWaypoints
-                .Where(other => other != wp && Vector3.Distance(wp.transform.position, other.transform.position) <= MaxConnectionDistance)
+                .Where(other => other != null && other != wp && Vector3.Distance(wp.transform.position, other.transform.position) <= MaxConnectionDistance)
                 .OrderBy(other => Vector3.Distance(wp.transform.position, other.transform.position))
                 .ToList();
             candidates[wp] = potentialNeighbors;
         }
 
-        // Шаг 2: Соединение "якорей" (сначала тупики, потом перекрестки для стабильности)
+        // Шаг 2: Соединение "якорей" (перекрестков и тупиков)
         var priorityWaypoints = allWaypoints
-            .Where(p => p.Type == WaypointType.Intersection || p.Type == WaypointType.DeadEnd)
-            .OrderBy(p => p.Type); // Сначала DeadEnd, потом Intersection - это важно!
+            .Where(p => p != null && (p.Type == WaypointType.Intersection || p.Type == WaypointType.DeadEnd))
+            .OrderBy(p => p.Type);
 
         foreach (var wp in priorityWaypoints)
         {
             int desiredCount = wp.GetDesiredNeighborCount();
             var bestCandidates = candidates[wp]
-                .Where(c => c.neighbors.Count < c.GetDesiredNeighborCount())
+                .Where(c => c != null && c.neighbors.Count < c.GetDesiredNeighborCount())
                 .Take(desiredCount - wp.neighbors.Count);
 
             foreach (var candidate in bestCandidates)
@@ -60,11 +63,11 @@ public class WaypointEditor
             }
         }
 
-        // Шаг 3: "Волновое" построение коридоров с учетом направления
+        // Шаг 3: "Волновое" построение коридоров (логика из отладки)
         var processingQueue = new Queue<WaypointLabyrinth>();
 
-        // Находим стартовые точки
-        foreach (var wp in allWaypoints.Where(p => p.Type == WaypointType.Standard && p.neighbors.Count == 1))
+        // Находим стартовые точки для коридоров
+        foreach (var wp in allWaypoints.Where(p => p != null && p.Type == WaypointType.Standard && p.neighbors.Count == 1))
         {
             processingQueue.Enqueue(wp);
         }
@@ -73,31 +76,25 @@ public class WaypointEditor
         {
             var currentWp = processingQueue.Dequeue();
 
-            if (currentWp.neighbors.Count >= currentWp.GetDesiredNeighborCount())
+            if (currentWp == null || currentWp.neighbors.Count >= currentWp.GetDesiredNeighborCount())
             {
                 continue;
             }
 
-            // --- КЛЮЧЕВОЕ УЛУЧШЕНИЕ ЗДЕСЬ ---
-            // Определяем направление, откуда мы пришли
-            var previousWp = currentWp.neighbors[0];
-            Vector3 forwardDirection = (currentWp.transform.position - previousWp.transform.position).normalized;
-
-            // Ищем лучшего соседа, который продолжает это направление
+            // --- ВОЗВРАЩЕННАЯ ЛОГИКА ---
+            // Ищем первого доступного соседа из списка, отсортированного по дистанции.
             var nextNeighbor = candidates[currentWp]
-                .Where(c =>
+                .FirstOrDefault(c =>
+                    c != null &&
                     c.Type == WaypointType.Standard &&
                     c.neighbors.Count < c.GetDesiredNeighborCount() &&
                     !currentWp.neighbors.Contains(c)
-                )
-                // Сортируем кандидатов: чем ближе направление к "прямо", тем лучше
-                .OrderByDescending(c => Vector3.Dot(forwardDirection, (c.transform.position - currentWp.transform.position).normalized))
-                .FirstOrDefault();
+                );
 
             if (nextNeighbor != null)
             {
                 ConnectPair(currentWp, nextNeighbor);
-                // Если новая точка еще не заполнена, добавляем ее в очередь для продолжения коридора
+                // Если новая точка еще не заполнена, добавляем ее в очередь
                 if (nextNeighbor.neighbors.Count < nextNeighbor.GetDesiredNeighborCount())
                 {
                     processingQueue.Enqueue(nextNeighbor);
@@ -105,13 +102,16 @@ public class WaypointEditor
             }
         }
 
-        // Финальный шаг: Сохранение
+        // Финальный шаг: Сохранение изменений
         foreach (var wp in allWaypoints)
         {
-            EditorUtility.SetDirty(wp);
+            if (wp != null)
+            {
+                EditorUtility.SetDirty(wp);
+            }
         }
 
-        Debug.Log($"Авто-соединение завершено! Обработано {allWaypoints.Length} точек. Алгоритм: Advanced.");
+        Debug.Log($"Авто-соединение завершено! Обработано {allWaypoints.Length} точек. Алгоритм: Wave.");
     }
 
     private static void ConnectPair(WaypointLabyrinth a, WaypointLabyrinth b)
