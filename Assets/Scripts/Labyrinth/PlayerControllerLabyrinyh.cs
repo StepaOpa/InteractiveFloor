@@ -27,6 +27,7 @@ public class PlayerControllerLabyrinth : MonoBehaviour
     public Image leftArrowImage;
     public Image rightArrowImage;
     public Color enabledArrowColor = Color.white;
+    // disabledArrowColor больше не будет использоваться, но можно его пока оставить
     public Color disabledArrowColor = new Color(0.5f, 0.5f, 0.5f, 0.7f);
     public float decisionPointDelay = 0.8f;
     [Tooltip("Насколько сильно путь должен совпадать с направлением стрелки, чтобы она загорелась (0.5 = 60 градусов)")]
@@ -78,11 +79,15 @@ public class PlayerControllerLabyrinth : MonoBehaviour
 
     private void UpdateArrowVisuals()
     {
-        SetArrowState(forwardArrowImage, false);
-        SetArrowState(backArrowImage, false);
-        SetArrowState(leftArrowImage, false);
-        SetArrowState(rightArrowImage, false);
+        // Эта логика всё ещё нужна, чтобы понимать, куда игрок может двигаться,
+        // но визуально кнопки всегда будут включены
+        SetArrowState(forwardArrowImage, true); // Всегда активна
+        SetArrowState(backArrowImage, true);    // Всегда активна
+        SetArrowState(leftArrowImage, true);    // Всегда активна
+        SetArrowState(rightArrowImage, true);   // Всегда активна
 
+        // Вы можете даже упростить UpdateArrowVisuals, если вам больше не нужно
+        // определять, какие стрелки показывать. Но для логики нажатия это всё ещё нужно.
         if (currentWaypoint == null) return;
 
         var fwdCandidate = FindBestNeighborForDirection(Vector3.forward);
@@ -97,7 +102,9 @@ public class PlayerControllerLabyrinth : MonoBehaviour
         {
             if (candidate.waypoint != null && candidate.dotProduct > directionMatchThreshold && !assignedWaypoints.Contains(candidate.waypoint))
             {
-                AssignArrowToDirection(candidate.direction);
+                // Логика назначения остаётся, чтобы игрок двигался в правильном направлении
+                // при нажатии на кнопку.
+                // AssignArrowToDirection(candidate.direction); // Эта строка больше не нужна для визуала
                 assignedWaypoints.Add(candidate.waypoint);
             }
         }
@@ -177,9 +184,14 @@ public class PlayerControllerLabyrinth : MonoBehaviour
         }
     }
 
+    // <<< ИЗМЕНЕНИЕ ЗДЕСЬ >>>
     private void SetArrowState(Image arrow, bool isActive)
     {
-        if (arrow != null) arrow.color = isActive ? enabledArrowColor : disabledArrowColor;
+        // Всегда используем активный цвет
+        if (arrow != null)
+        {
+            arrow.color = enabledArrowColor;
+        }
     }
 
     private void ReadInput()
@@ -199,8 +211,6 @@ public class PlayerControllerLabyrinth : MonoBehaviour
     {
         if (other.CompareTag("WinZone")) gameManager.WinGame();
 
-        // <<< ИСПРАВЛЕНИЕ ЗДЕСЬ >>>
-        // Меняем .Lose на .LoseGame, как в вашем скрипте GameManagerLabyrinth
         if (other.CompareTag("Trap")) gameManager.LoseGame("Вы попались в ловушку!");
 
         if (other.CompareTag("Net"))
